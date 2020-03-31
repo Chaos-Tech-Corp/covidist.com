@@ -1,0 +1,56 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>COVID-19 Distribution</title>
+    <meta name="description" content="COVID-19 worldwide distrubution charts, ranges and country details." />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+    @RenderSection("Style", required: false)
+    <link rel="icon" href="/img/cropped-Icon_TransparentBg_1024x1024_72dpi-1-32x32.png" sizes="32x32" />
+    <link rel="icon" href="/img/cropped-Icon_TransparentBg_1024x1024_72dpi-1-192x192.png" sizes="192x192" />
+    <link rel="apple-touch-icon-precomposed" href="/img/cropped-Icon_TransparentBg_1024x1024_72dpi-1-180x180.png" />
+    <meta name="msapplication-TileImage" content="/img/cropped-Icon_TransparentBg_1024x1024_72dpi-1-270x270.png" />
+    <meta property="og:title" content="COVID-19 Distribution" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://covidist.com" />
+    <meta property="og:description" content="COVID-19 worldwide distrubution charts, ranges and country details." />
+    <meta property="og:image" content="https://covidist.com/img/covidist.png" />
+    <meta property="og:site_name" content="COVID-19 Distribution" />
+    <meta property="og:locale" content="en_US" />
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+            <div>
+                <a class="navbar-brand" href="/" style="display:flex">
+                    <img src="~/img/chaos_logo.png" style="max-height:42px" />
+                    <span style="line-height:1; display:block;">COVID-19<br />Distribution</span>
+                </a>
+                @*<div class="navbar-collapse collapse d-sm-inline-flex flex-sm-row-reverse">
+                        <ul class="navbar-nav flex-grow-1">
+                            <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Portada</a>
+                                </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" href="/listado">Listado</a>
+                            </li>
+                        </ul>
+                    </div>*@
+            </div>
+        </nav>
+    </header>
+
+    @RenderBody()
+
+
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    @*<script src="~/js/site.js" asp-append-version="true"></script>*@
+    @RenderSection("Scripts", required: false)
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-149746338-3"></script>
+    <script>window.dataLayer = window.dataLayer || []; function gtag() { dataLayer.push(arguments); } gtag('js', new Date()); gtag('config', 'UA-149746338-3');</script>
+</body>
+</html>

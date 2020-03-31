@@ -1,0 +1,18 @@
+﻿@{
+    //ViewData["Title"] = "Home Page";
+    List<string> countries = ViewBag.countries;
+}
+
+    <div style="padding:16px; max-width:900px; margin:auto;">
+        <h3>Information</h3>
+        <p>Data sourced from the EU Open Data Portal.</p>
+        <p>Link: <a href="https://data.europa.eu/euodp/en/data/dataset/covid-19-coronavirus-data" target="_blank">COVID-19 Coronavirus data</a></p>
+        <p>Last Update: @ViewBag.update</p>
+        <h5>Notes</h5>
+        <p>In the Country view, the <i>Case Multiplier</i> value limited to a value of 10 for display purposes.</p>
+        <h3>Privacy Notice</h3>
+        <p>This site use cookies for tracking visitors only, by using Google Analytics.</p>
+        <p>No personal information or data is required or captured.</p>
+        <h3>Source Code</h3>
+        <p>Source coded provided under MIT license in Github <a href="https://github.com/Chaos-Tech-Corp/covidist.com">here</a>.</p>
+    </div>

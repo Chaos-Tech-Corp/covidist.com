@@ -1,0 +1,322 @@
+﻿@{
+    //ViewData["Title"] = "Home Page";
+    List<string> countries = ViewBag.countries;
+}
+
+<div style="position:absolute; top:70px; left:0; right:0; bottom:0;">
+    <div id="container" style="width:100%; height:100%;; background:#f0f0f0"></div>
+</div>
+<div class="chart_options">
+    <div class="form_element">
+        <small>Scale:</small>
+        <select id="bnFilterScale">
+            <option>Linear</option>
+            <option>Logaritmic</option>
+        </select>
+    </div>
+    <div class="form_element">
+        <small>Show:</small>
+        <select id="bnFilterCountry">
+            <option>World</option>
+            @foreach (var c in countries)
+            {
+                <option>@c</option>
+            }
+        </select>
+    </div>
+    <div class="form_element">
+        <small>Repor Type:</small>
+        <select id="bnFilterType">
+            <option value="c">Cummulative</option>
+            <option value="d">Cases by Day</option>
+        </select>
+    </div>
+    <div class="form_element">
+        <small>Filter by:</small>
+        <select id="bnFilterLine">
+            <option value="infected">Infected</option>
+            <option value="lost">Lost</option>
+        </select>
+    </div>
+    <div class="form_element">
+        <small>Date:</small>
+        <select id="bnFilterDate">
+            <option value="date">Calendar</option>
+            <option value="pandemic">Pandemic</option>
+        </select>
+    </div>
+    <div class="form_element">
+        <small>Cases:</small>
+        <select id="bnFilterAdjust">
+            <option>1</option>
+            <option>10</option>
+            <option>50</option>
+            <option selected>100</option>
+            <option>500</option>
+            <option>1000</option>
+        </select>
+    </div>
+    <button id="bnHideAll" class="btn btn-light">Hide</button>
+    <button id="bnShowAll" class="btn btn-light">Show</button>
+    <button id="bnLegend" class="btn btn-info">Toggle</button>
+    <a href="/privacy" class="btn btn-link">Info</a>
+</div>
+
+
+@section Scripts {
+    <script src="~/lib/hc/highcharts.js"></script>
+    @*<script src="~/lib/hc/modules/data.js"></script>*@
+    @*<script src="~/lib/hc/modules/boost.js"></script>*@
+    <script src="~/lib/hc/modules/exporting.js"></script>
+    @*<script src="~/lib/hc/modules/export-data.js"></script>*@
+    @*<script src="~/lib/hc/modules/accessibility.js"></script>*@
+    <script>
+        var chart = null,
+            vSeries = [];
+
+        function loadData(filter, range, adjust) {
+            if (chart != null) {
+                vSeries = [];
+                for (var i = 0; i < chart.series.length; i++) {
+                    vSeries[chart.series[i].name] = chart.series[i].visible;
+                }
+            }
+            $.post('/AllData', { field: filter, range: range, adjust: adjust }, function (result) {
+                for (var i = 0; i < result.length; i++) {
+                    result[i].visible = vSeries[result[i].name];
+                }
+
+
+                chart = Highcharts.chart('container', {
+                    chart: {
+                        type: 'spline'
+                    },
+                    //boost: {
+                    //    enabled: false,
+                    //    usePreallocated: true,
+                    //    useAlpha: false
+                    //},
+                    title: {
+                        text: 'COVID-19 Distribution'
+                    },
+                    xAxis: {
+                        type: range == 'pandemic' ? 'linear':'datetime',
+                        dateTimeLabelFormats: {
+                            month: '%e. %b',
+                            year: '%b'
+                        },
+                        title: {
+                            text: 'Date'
+                        }
+                    },
+                    yAxis: [{
+                        title: {
+                            text: 'Cases'
+                        },
+                        min: 0
+                    }],
+
+                    legend: {
+                        layout: 'vertical',
+                        align: 'right',
+                        verticalAlign: 'middle'
+                    },
+
+                    tooltip: {
+                        headerFormat: '<b>{series.name}</b><br>',
+                        pointFormat: range == 'pandemic' ? 'Day {point.x}: {point.y:#,##0f}' :'{point.x:%e. %b}: {point.y:#,##0f}'
+                    },
+
+                    plotOptions: {
+                        series: {
+                            marker: {
+                                enabled: false
+                            }
+                        }
+                    },
+
+                    series: result,
+
+                    responsive: {
+                        rules: [{
+                            condition: {
+                                maxWidth: 500
+                            },
+                            chartOptions: {
+                                legend: {
+                                    layout: 'horizontal',
+                                    align: 'center',
+                                    verticalAlign: 'bottom'
+                                }
+                            }
+                        }]
+                    }
+
+                });
+            });
+        }
+
+        function loadCountry(filter, type) {
+            $.post('/CountryData', { country: filter, type: type }, function (result) {
+                chart = Highcharts.chart('container', {
+                    chart: {
+                        zoomType: 'xy'
+                    },
+                    title: {
+                        text: 'COVID-19 Distribution - ' + filter
+                    },
+                    xAxis: {
+                        type: 'datetime',
+                        dateTimeLabelFormats: { // don't display the dummy year
+                            month: '%e. %b',
+                            year: '%b'
+                        },
+                        title: {
+                            text: 'Date'
+                        }
+                    },
+                    yAxis: [{
+                        title: {
+                            text: 'Cases'
+                        },
+                        min: 0
+                        //type: 'logarithmic'
+                    }, {
+                        title: {
+                            text: 'Multiplier by 4 days'
+                        }, min: 0,
+                        labels: {
+                            style: {
+                                color: Highcharts.getOptions().colors[0]
+                            }
+                        },
+                        opposite: true,
+                        plotLines: [{
+                            color: Highcharts.getOptions().colors[0],
+                            width: 1,
+                            value: 1,
+                            label: {
+                                text: 'No more new cases'
+                            }
+                        }]
+                    }],
+
+                    legend: {
+                        layout: 'vertical',
+                        align: 'right',
+                        verticalAlign: 'middle'
+                    },
+
+                    tooltip: {
+                        headerFormat: '<b>{series.name}</b><br>',
+                        pointFormat: '{point.x:%e. %b}: {point.y:#,##0f}'
+                    },
+
+
+                    series: result,
+
+                    responsive: {
+                        rules: [{
+                            condition: {
+                                maxWidth: 500
+                            },
+                            chartOptions: {
+                                legend: {
+                                    layout: 'horizontal',
+                                    align: 'center',
+                                    verticalAlign: 'bottom'
+                                }
+                            }
+                        }]
+                    }
+
+                });
+            });
+        }
+
+        $(function () {
+
+            $("#bnFilterAdjust").parent().hide();
+            $("#bnFilterType").parent().hide();
+
+            loadData('infected', 'date', 100);
+
+            $("#bnLegend").on("click", function () {
+                chart.update({
+                    legend: {
+                        enabled: !chart.legend.display
+                    }
+                });
+            });
+
+            $("#bnHideAll").on("click", function () {
+                const hideAll = function (i) {
+                    window.setTimeout(function () {
+                        if (i < chart.series.length) {
+                            chart.series[i].hide();
+                            hideAll(++i);
+                        }
+                    }, 50);
+                }
+                hideAll(0);
+            });
+            $("#bnShowAll").on("click", function () {
+                const showAll = function (i) {
+                    window.setTimeout(function () {
+                        if (i < chart.series.length) {
+                            chart.series[i].show();
+                            showAll(++i);
+                        }
+                    }, 50);
+                }
+                showAll(0);
+            });
+
+            $("#bnFilterLine").on("change", function () {
+                loadData($(this).val(), $("#bnFilterDate").val());
+            });
+
+            $("#bnFilterDate").on("change", function () {
+                var val = $("#bnFilterDate").val();
+                if (val == "date") {
+                    $("#bnFilterAdjust").parent().hide();
+                } else {
+                    $("#bnFilterAdjust").parent().show();
+                }
+                loadData($("#bnFilterLine").val(), val, $("#bnFilterAdjust").val());
+            });
+
+            $("#bnFilterAdjust").on("change", function () {
+                loadData($("#bnFilterLine").val(), $("#bnFilterDate").val(), $("#bnFilterAdjust").val());
+            });
+
+            $("#bnFilterType").on("change", function () {
+                loadCountry($(bnFilterCountry).val(), $("#bnFilterType").val());
+            });
+
+            $("#bnFilterScale").on("change", function () {
+            });
+
+            $("#bnFilterCountry").on("change", function () {
+                var cntry = $(this).val();
+                if (cntry == "World") {
+                    $("#bnFilterLine").parent().show();
+                    $("#bnFilterDate").parent().show();
+                    if ($("#bnFilterDate").val() == 'date') {
+                        $("#bnFilterAdjust").parent().hide();
+                    } else {
+                        $("#bnFilterAdjust").parent().show();
+                    }
+                    $("#bnFilterType").parent().hide();
+                    loadData($("#bnFilterLine").val(), $("#bnFilterDate").val(), $("#bnFilterAdjust").val());
+                } else {
+                    $("#bnFilterLine").parent().hide();
+                    $("#bnFilterDate").parent().hide();
+                    $("#bnFilterAdjust").parent().hide();
+                    $("#bnFilterType").parent().show();
+                    loadCountry(cntry, $("#bnFilterType").val());
+                }
+            });
+        });
+    </script>
+}
