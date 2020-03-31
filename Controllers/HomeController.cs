@@ -136,10 +136,11 @@ namespace covidist.com.Controllers
                 }
             }
 
+            List<time_chart> data2Use;
 
             if(field == "active")
             {
-                List<time_chart> adjusted = new List<time_chart>();
+                data2Use = new List<time_chart>();
                 foreach (var item in _charts["infected"])
                 {
                     if (_recoveries.ContainsKey(item.name))
@@ -170,14 +171,16 @@ namespace covidist.com.Controllers
                             }
                         }
 
-                        adjusted.Add(t);
+                        data2Use.Add(t);
                     }
                 }
 
-                return new JsonResult(adjusted);
+            } else
+            {
+                data2Use = _charts[field];
             }
             //adjust the ranges by 100 cases or closest figure
-            else if (range == "pandemic")
+            if (range == "pandemic")
             {
                 if (string.IsNullOrEmpty(adjust))
                 {
@@ -185,7 +188,7 @@ namespace covidist.com.Controllers
                 }
                 int caseTrigger = int.Parse(adjust);
                 List<time_chart> adjusted = new List<time_chart>();
-                foreach (var item in _charts[field])
+                foreach (var item in data2Use)
                 {
                     var t = new time_chart()
                     {
@@ -209,7 +212,7 @@ namespace covidist.com.Controllers
 
             }
 
-            return new JsonResult(_charts[field]);
+            return new JsonResult(data2Use);
         }
 
         public JsonResult CountryData(string country, string type)
