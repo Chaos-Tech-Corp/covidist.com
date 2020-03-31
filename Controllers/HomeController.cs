@@ -479,13 +479,18 @@ namespace covidist.com.Controllers
                 t1 = t1 / groupLengh;
                 y1 = y1 / groupLengh;
 
+                //last day in the series
+                double lastDay = (double)m.data.Last()[0];
+                double oneUnixDay = 24 * 60 * 60 * 1000;
+
                 //etm.data.Add(m.data.Last());
                 for (var ix = 1; ix <= length; ix++)
                 {
-                    double unixTimestamp = (DateTime.Today.AddDays(ix).Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
-                    unixTimestamp = unixTimestamp * 1000;
+                    //double unixTimestamp = (DateTime.Today.AddDays(ix).Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
+                    //unixTimestamp = unixTimestamp * 1000;
+                    lastDay += oneUnixDay;
 
-                    var x = unixTimestamp;
+                    var x = lastDay;
                     var r = ((y2 - y1) / (t2 - t1)) * (x - t1) + y1;
                     etm.data.Add(new List<object>() { x, r });
                 }
@@ -540,7 +545,7 @@ namespace covidist.com.Controllers
 
             List<time_chart> c = new List<time_chart>();
             c.Add(i);
-            return new JsonResult(c);
+            return new JsonResult(new { series = c, lines = GetLines(country) });
         }
 
         private List<time_chart> readAllData(string field)
