@@ -10,8 +10,8 @@
     <div class="form_element">
         <small>Scale:</small>
         <select id="bnFilterScale">
-            <option>Linear</option>
-            <option>Logaritmic</option>
+            <option value="linear">Linear</option>
+            <option value="logarithmic">Logarithmic</option>
         </select>
     </div>
     <div class="form_element">
@@ -112,8 +112,9 @@
                     yAxis: [{
                         title: {
                             text: 'Cases'
-                        },
-                        min: 0
+                        }
+                        , type: $("#bnFilterScale").val()
+                        //, min: 0
                     }],
 
                     legend: {
@@ -179,8 +180,8 @@
                         title: {
                             text: 'Cases'
                         },
-                        min: 0
-                        //type: 'logarithmic'
+                        type: $("#bnFilterScale").val()
+                        //, min: 0
                     }, {
                         title: {
                             text: 'Multiplier by 4 days'
@@ -295,6 +296,12 @@
             });
 
             $("#bnFilterScale").on("change", function () {
+                var type = $(this).val();
+                chart.update({
+                    yAxis: [{
+                        type: type
+                    }, {}]
+                });
             });
 
             $("#bnFilterCountry").on("change", function () {
