@@ -45,7 +45,6 @@
         <select id="bnFilterDate">
             <option value="date">Calendar</option>
             <option value="pandemic">Pandemic</option>
-            <option value="active">Active</option>
         </select>
     </div>
     <div class="form_element">
@@ -240,10 +239,17 @@
 
         $(function () {
 
+            if (window.location.hash) {
+                $("#bnFilterCountry").val(window.location.hash.substring(1));
+                loadCountry($("#bnFilterCountry").val(), $("#bnFilterType").val());
+            } else {
+                loadData('infected', 'date', 100);
+            }
+
             $("#bnFilterAdjust").parent().hide();
             $("#bnFilterType").parent().hide();
 
-            loadData('infected', 'date', 100);
+            
 
             $("#bnLegend").on("click", function () {
                 chart.update({
@@ -295,7 +301,7 @@
             });
 
             $("#bnFilterType").on("change", function () {
-                loadCountry($(bnFilterCountry).val(), $("#bnFilterType").val());
+                loadCountry($("#bnFilterCountry").val(), $("#bnFilterType").val());
             });
 
             $("#bnFilterScale").on("change", function () {
@@ -309,6 +315,7 @@
 
             $("#bnFilterCountry").on("change", function () {
                 var cntry = $(this).val();
+                window.location.hash = cntry;
                 if (cntry == "World") {
                     $("#bnFilterLine").parent().show();
                     $("#bnFilterDate").parent().show();
