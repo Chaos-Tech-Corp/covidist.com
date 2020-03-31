@@ -14,8 +14,51 @@ namespace covidist.com.Controllers
     public class HomeController : Controller
     {
 
+        private Dictionary<string, string> countryMappings = new Dictionary<string, string>()
+        {
+            {"US", "United_States_of_America"},
+            {"Antigua and Barbuda","Antigua_and_Barbuda" },
+            {"Bosnia and Herzegovina","Bosnia_and_Herzegovina" },
+            {"Brunei","Brunei_Darussalam" },
+            {"Burkina Faso","Burkina_Faso" },
+            {"Cabo Verde","Cape_Verde" },
+            {"Central African Republic","Central_African_Republic" },
+            {"Cayman Islands","Cayman_Islands" },
+            {"Costa Rica","Costa_Rica" },
+            {"Cote d'Ivoire","Cote_dIvoire" },
+            {"Czechia","Czech_Republic" },
+            {"Congo (Kinshasa)","Democratic_Republic_of_the_Congo" },
+            {"Congo (Brazzaville)","Democratic_Republic_of_the_Congo" },
+            {"Dominican Republic","Dominican_Republic" },
+            {"El Salvador","El_Salvador" },
+            {"Equatorial Guinea","Equatorial_Guinea" },
+            {"Faroe Islands","Faroe_Islands" },
+            {"French Polynesia","French_Polynesia" },
+            {"Guinea-Bissau","Guinea_Bissau" },
+            {"Holy See","Holy_See" },
+            {"Isle of Man","Isle_of_Man" },
+            {"New Zealand","New_Zealand" },
+            {"North Macedonia","North_Macedonia" },
+            {"Papua New Guinea","Papua_New_Guinea" },
+            {"Puerto Rico","Puerto_Rico" },
+            {"Saint Kitts and Nevis","Saint_Kitts_and_Nevis" },
+            {"Saint Lucia","Saint_Lucia" },
+            {"Saint Vincent and the Grenadines","Saint_Vincent_and_the_Grenadines" },
+            {"San Marino","San_Marino" },
+            {"Saudi Arabia","Saudi_Arabia" },
+            {"South Africa","South_Africa" },
+            {"South Korea","South_Korea" },
+            {"Sri Lanka","Sri_Lanka" },
+            {"Taiwan*","Taiwan" },
+            {"Timor-Leste","Timor_Leste" },
+            {"United Arab Emirates","United_Arab_Emirates" },
+            {"United Kingdom","United_Kingdom" },
+            {"Tanzania","United_Republic_of_Tanzania" }
+        };
+
         private static Dictionary<string, List<time_chart>> _charts = new Dictionary<string, List<time_chart>>();
         private static DateTime _lastCheck = DateTime.MinValue;
+        private static Dictionary<string, Dictionary<DateTime, int>> _recoveries;
 
 
         public HomeController()
@@ -27,7 +70,7 @@ namespace covidist.com.Controllers
             lock (_charts)
             {
                 //refresh every hour
-                if (_charts.Count == 0 || _lastCheck < DateTime.Now.AddHours(-1))
+                if (_charts.Count == 0 || _lastCheck < DateTime.Now.AddHours(-2))
                 {
                     _charts = new Dictionary<string, List<time_chart>>();
                     _charts.Add("infected", readAllData(null));
@@ -41,10 +84,15 @@ namespace covidist.com.Controllers
 
         public void DownloadFile()
         {
+            //new cases/losts
             string url = "https://opendata.ecdc.europa.eu/covid19/casedistribution/csv";
             var net = new System.Net.WebClient();
             var data = net.DownloadData(url);
             System.IO.File.WriteAllBytes("c:\\temp\\" + DateTime.Today.ToString("yyyy-MM-dd") + ".csv", data);
+            //recoveries
+            url = "https://data.humdata.org/hxlproxy/data/download/time_series_covid19_recovered_global_narrow.csv?dest=data_edit&filter01=explode&explode-header-att01=date&explode-value-att01=value&filter02=rename&rename-oldtag02=%23affected%2Bdate&rename-newtag02=%23date&rename-header02=Date&filter03=rename&rename-oldtag03=%23affected%2Bvalue&rename-newtag03=%23affected%2Binfected%2Bvalue%2Bnum&rename-header03=Value&filter04=clean&clean-date-tags04=%23date&filter05=sort&sort-tags05=%23date&sort-reverse05=on&filter06=sort&sort-tags06=%23country%2Bname%2C%23adm1%2Bname&tagger-match-all=on&tagger-default-tag=%23affected%2Blabel&tagger-01-header=province%2Fstate&tagger-01-tag=%23adm1%2Bname&tagger-02-header=country%2Fregion&tagger-02-tag=%23country%2Bname&tagger-03-header=lat&tagger-03-tag=%23geo%2Blat&tagger-04-header=long&tagger-04-tag=%23geo%2Blon&header-row=1&url=https%3A%2F%2Fraw.githubusercontent.com%2FCSSEGISandData%2FCOVID-19%2Fmaster%2Fcsse_covid_19_data%2Fcsse_covid_19_time_series%2Ftime_series_covid19_recovered_global.csv";
+            data = net.DownloadData(url);
+            System.IO.File.WriteAllBytes("c:\\temp\\recover-" + DateTime.Today.ToString("yyyy-MM-dd") + ".csv", data);
         }
 
         public string[] GetFile()
@@ -55,7 +103,16 @@ namespace covidist.com.Controllers
                 DownloadFile();
             }
             return System.IO.File.ReadAllLines(fileName);
-            
+        }
+
+        public string[] GetRecoveries()
+        {
+            string fileName = "c:\\temp\\recover-" + DateTime.Today.ToString("yyyy-MM-dd") + ".csv";
+            if (!System.IO.File.Exists(fileName) || _lastCheck < DateTime.Now.AddHours(-1))
+            {
+                DownloadFile();
+            }
+            return System.IO.File.ReadAllLines(fileName);
         }
 
         public JsonResult AllData(string field, string range, string adjust)
@@ -125,6 +182,10 @@ namespace covidist.com.Controllers
                 {
                     _charts.Add("lost", readAllData("lost"));
                 }
+                if (_recoveries == null)
+                {
+                    _recoveries = readRecoveries();
+                }
             }
 
             if (string.IsNullOrEmpty(type))
@@ -147,6 +208,22 @@ namespace covidist.com.Controllers
                 if ((int)e[1] > 0)
                 {
                     i.data.Add(new List<object>() { e[0], e[1] });
+                }
+            }
+
+            var r = new time_chart();
+            if (_recoveries.ContainsKey(country))
+            {
+                r.name = "Recovered";
+                r.type = "spline";
+                r.yAxis = 0;
+                r.data = new List<List<object>>();
+                foreach(var e in _recoveries[country].OrderBy(O => O.Key))
+                {
+                    if (e.Value > 0)
+                    {
+                        r.data.Add(new List<object>() { e.Key.ToUnixTime(), e.Value });
+                    }
                 }
             }
 
@@ -340,6 +417,10 @@ namespace covidist.com.Controllers
             {
                 c.Add(l);
             }
+            if (r.data != null && r.data.Count > 0)
+            {
+                c.Add(r);
+            }
 
             //c.Add(etm);
             //c.Add(et);
@@ -375,7 +456,6 @@ namespace covidist.com.Controllers
                 fieldIndex = 5;
             }
 
-            //foreach(Entry e in entries)
             lineIx = 0;
             foreach (string line in GetFile())
             {
@@ -401,28 +481,10 @@ namespace covidist.com.Controllers
                 var who = charts.First(F => F.name == country);
                 who.data.Add(new List<object>() { unixTimestamp, infected });
 
-                //var cIx = charts[0].data.FindIndex(D => (double)D.First() == unixTimestamp);
-                //if (cIx >= 0)
-                //{
-                //    charts[0].data[cIx][1] = (int)charts[0].data[cIx][1] + infected;
-                //    charts[1].data[cIx][1] = (int)charts[1].data[cIx][1] + lost;
-                //}
-                //else
-                //{
-                //    charts[0].data.Add(new List<object>() { unixTimestamp, infected });
-                //    charts[1].data.Add(new List<object>() { unixTimestamp, lost });
-                //}
-
-
-
-                //charts[1].data.Add(new List<object>() { unixTimestamp, e.critical });
-
-                //charts[2].data.Add(new List<object>() { unixTimestamp, e.recovered });
-
 
             }
-            //charts[0].data = charts[0].data.OrderBy(D => (double)D[0]).ToList();
-            //charts[1].data = charts[1].data.OrderBy(D => (double)D[0]).ToList();
+            //minimum amount of cases to render data
+            int minimumAmount = 1;
             List<int> allZero = new List<int>();
             lineIx = 0;
             foreach (var chart in charts)
@@ -432,7 +494,7 @@ namespace covidist.com.Controllers
                 {
                     chart.data[i][1] = (int)chart.data[i][1] + (int)chart.data[i - 1][1];
                 }
-                if ((int)chart.data.Last()[1] <= 100)
+                if ((int)chart.data.Last()[1] <= minimumAmount)
                 {
                     allZero.Add(lineIx);
                 }
@@ -444,7 +506,48 @@ namespace covidist.com.Controllers
             }
             return charts;
         }
-        
+
+        private Dictionary<string, Dictionary<DateTime, int>> readRecoveries()
+        {
+            var data = new Dictionary<string, Dictionary<DateTime, int>>();
+            DateTime triggerDate = new DateTime(2020, 1, 20);
+
+            int lineIx = 0;
+            foreach (string line in GetRecoveries())
+            {
+                lineIx++;
+                if (lineIx <= 3) continue;
+
+                var values = line.Split(',');
+                DateTime when = DateTime.ParseExact(values[4], new string[] {"yyyy-MM-dd", "dd/MM/yyyy", "dd-MM-yyyy" }, CultureInfo.InvariantCulture);
+                int recovered = int.Parse(values[5]);
+                string country = values[1];
+
+                if (countryMappings.ContainsKey(country))
+                {
+                    country = countryMappings[country];
+                }
+
+                if (string.IsNullOrEmpty(values[8]) || values[8] == "N/A")
+                {
+                    continue;
+                }
+
+                if (when < triggerDate) continue;
+
+                double unixTimestamp = (when.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
+                unixTimestamp = unixTimestamp * 1000;
+
+                if (data.ContainsKey(country))
+                {
+                    data[country].Add(when, recovered);
+                } else
+                {
+                    data.Add(country, new Dictionary<DateTime, int>() { { when, recovered } });
+                }
+            }
+            return data;
+        }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
