@@ -14,7 +14,6 @@ namespace covidist.com.Controllers
     public class HomeController : Controller
     {
 
-        private Database _db;
         private static Dictionary<string, List<time_chart>> _charts = new Dictionary<string, List<time_chart>>();
         private static DateTime _lastCheck = DateTime.MinValue;
 
