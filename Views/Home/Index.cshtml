@@ -74,7 +74,8 @@
     @*<script src="~/lib/hc/modules/accessibility.js"></script>*@
     <script>
         var chart = null,
-            vSeries = [];
+            vSeries = [],
+            _hash = null;
 
         function loadData(filter, range, adjust) {
             if (chart != null) {
@@ -161,6 +162,21 @@
 
         function loadCountry(filter, type) {
             $.post('/CountryData', { country: filter, type: type }, function (result) {
+                //check if the series contains an estimate
+                var plotBands = [];
+                for (var i = 0; i < result.length; i++) {
+                    if (result[i].name == 'Estimate Infected') {
+                        plotBands = [{
+                            label: {
+                                text: 'Estimate'
+                            },
+                            color: '#f0f0f0',
+                            from: result[i].data[0][0]- 56400000, // Start of the plot band
+                            to: result[i].data[result[i].data.length - 1][0]+76400000 // End of the plot band
+                        }];
+                        break;
+                    }
+                }
                 chart = Highcharts.chart('container', {
                     chart: {
                         zoomType: 'xy'
@@ -176,7 +192,8 @@
                         },
                         title: {
                             text: 'Date'
-                        }
+                        },
+                        plotBands: plotBands
                     },
                     yAxis: [{
                         title: {
@@ -238,13 +255,6 @@
         }
 
         $(function () {
-
-            if (window.location.hash) {
-                $("#bnFilterCountry").val(window.location.hash.substring(1));
-                loadCountry($("#bnFilterCountry").val(), $("#bnFilterType").val());
-            } else {
-                loadData('infected', 'date', 100);
-            }
 
             $("#bnFilterAdjust").parent().hide();
             $("#bnFilterType").parent().hide();
@@ -314,9 +324,9 @@
             });
 
             $("#bnFilterCountry").on("change", function () {
-                var cntry = $(this).val();
-                window.location.hash = cntry;
-                if (cntry == "World") {
+                _hash = $(this).val();
+                window.location.hash = _hash;
+                if (_hash == "World") {
                     $("#bnFilterLine").parent().show();
                     $("#bnFilterDate").parent().show();
                     if ($("#bnFilterDate").val() == 'date') {
@@ -331,9 +341,25 @@
                     $("#bnFilterDate").parent().hide();
                     $("#bnFilterAdjust").parent().hide();
                     $("#bnFilterType").parent().show();
-                    loadCountry(cntry, $("#bnFilterType").val());
+                    loadCountry(_hash, $("#bnFilterType").val());
                 }
             });
+
+
+            if (window.location.hash) {
+                _hash = window.location.hash.substring(1);
+                $("#bnFilterCountry").val(_hash).trigger("change");
+            } else {
+                loadData('infected', 'date', 100);
+            }
         });
+
+        window.onhashchange = function () {
+            var hash = window.location.hash.substring(1);
+            if (hash != _hash) {
+                _hash = hash;
+                $("#bnFilterCountry").val(_hash).trigger("change");
+            }
+        }
     </script>
 }

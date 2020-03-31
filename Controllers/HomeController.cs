@@ -85,6 +85,7 @@ namespace covidist.com.Controllers
 
         public void DownloadFile()
         {
+            return;
             //new cases/losts
             string url = "https://opendata.ecdc.europa.eu/covid19/casedistribution/csv";
             var net = new System.Net.WebClient();
@@ -370,107 +371,6 @@ namespace covidist.com.Controllers
                 }
             }
 
-            ////add estimation for next 4 days
-            //var etm = new time_chart();
-            //etm.name = "Mult. Estimate";
-            //etm.type = "column";
-            //etm.yAxis = 1;
-            //etm.data = new List<List<object>>();
-            ////get the last 4 entries
-            //int groupLengh = 3;
-            //double  t2 = 0;
-            //double y2 = 0;
-            //for (var ix = m.data.Count - groupLengh; ix < m.data.Count; ix++)
-            //{
-            //    t2 += (double)m.data[ix][0];
-            //    y2 += (double)m.data[ix][1];
-            //}
-            //t2 = t2 / groupLengh;
-            //y2 = y2 / groupLengh;
-
-            ////get the first 4 from the last 8
-            //double t1 = 0;
-            //double y1 = 0;
-            //for (var ix = m.data.Count - (groupLengh*2); ix < m.data.Count - groupLengh; ix++)
-            //{
-            //    t1 += (double)m.data[ix][0];
-            //    y1 += (double)m.data[ix][1];
-            //}
-            //t1 = t1 / groupLengh;
-            //y1 = y1 / groupLengh;
-
-            //etm.data.Add(m.data.Last());
-            //for (var ix = 1; ix < 5; ix++)
-            //{
-            //    double unixTimestamp = (DateTime.Today.AddDays(ix).Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
-            //    unixTimestamp = unixTimestamp * 1000;
-
-            //    var x = unixTimestamp;
-            //    var r = ((y2 - y1) / (t2 - t1)) * (x - t1) + y1;
-            //    etm.data.Add(new List<object>() { x, r });
-            //}
-
-
-            //double lowerLimit = 1.01;
-            //int maxDays = 10;
-            //if ((double)etm.data.Last()[1] < (double)etm.data.First()[1] && (double)etm.data.Last()[1] > lowerLimit)
-            //{
-            //    //how long till it gets close to 1? - max 30 days
-            //    for(var ix = 5; ix < maxDays; ix++)
-            //    {
-            //        double unixTimestamp = (DateTime.Today.AddDays(ix).Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
-            //        unixTimestamp = unixTimestamp * 1000;
-
-            //        var x = unixTimestamp;
-            //        var r = ((y2 - y1) / (t2 - t1)) * (x - t1) + y1;
-            //        etm.data.Add(new List<object>() { x, r });
-            //        if (r <= lowerLimit)
-            //        {
-            //            break;
-            //        }
-            //    }
-            //}
-
-            ////add estimation for next X days - basd on estimated multiplier data
-            //var et = new time_chart();
-            //et.name = "Infected Estimate";
-            //et.type = "spline";
-            //et.yAxis = 0;
-            //et.data = new List<List<object>>();
-            ////get the last 4 entries
-            //t2 = 0;
-            //y2 = 0;
-            //for (var ix = i.data.Count - groupLengh; ix < i.data.Count; ix++)
-            //{
-            //    t2 += (double)i.data[ix][0];
-            //    y2 += (int)i.data[ix][1];
-            //}
-            //t2 = t2 / groupLengh;
-            //y2 = y2 / groupLengh;
-
-            ////get the first 4 from the last 8
-            //t1 = 0;
-            //y1 = 0;
-            //for (var ix = i.data.Count - (groupLengh * 2); ix < i.data.Count - groupLengh; ix++)
-            //{
-            //    t1 += (double)i.data[ix][0];
-            //    y1 += (int)i.data[ix][1];
-            //}
-            //t1 = t1 / groupLengh;
-            //y1 = y1 / groupLengh;
-
-            //et.data.Add(i.data.Last());
-            //for (var ix = 1; ix < etm.data.Count; ix++)
-            //{
-            //    double unixTimestamp = (DateTime.Today.AddDays(ix).Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
-            //    unixTimestamp = unixTimestamp * 1000;
-
-            //    var x = unixTimestamp;
-            //    var r = ((y2 - y1) / (t2 - t1)) * (x - t1) + y1;
-            //    et.data.Add(new List<object>() { x, r });
-            //    //i.data.Add(new List<object>() { x, r });
-            //}
-
             List<time_chart> c = new List<time_chart>();
             c.Add(m);
             if (ml.data != null && ml.data.Count >0)
@@ -491,10 +391,83 @@ namespace covidist.com.Controllers
                 c.Add(r);
             }
 
-            //c.Add(etm);
+            var est = Estimate_Value(i, 2, 4); //2 groups of 2 items = last 4 days for sample - 2 days estimation
+            if (est.First().data != null && est.First().data.Count > 0)
+            {
+                if (type == "d")
+                {
+                    c.Add(est.First());
+                }
+                c.Add(est.Last());
+            }
             //c.Add(et);
 
             return new JsonResult(c);
+        }
+
+        public List<time_chart> Estimate_Value(time_chart m, int groupLengh, int length)
+        {
+            List<time_chart> charts = new List<time_chart>();
+
+            var etm = new time_chart();
+            etm.name = "Estimate Cases by Day";
+            etm.type = "column";
+            etm.yAxis = 1;
+            etm.data = new List<List<object>>();
+
+            //it needs at least n+1 values
+            if (m.data.Count > groupLengh + 1)
+            {
+                //get the last 4 entries
+                double t2 = 0;
+                double y2 = 0;
+                for (var ix = m.data.Count - groupLengh; ix < m.data.Count; ix++)
+                {
+                    t2 += (double)m.data[ix][0];
+                    //cases by day, not the sum
+                    y2 += Convert.ToDouble(m.data[ix][1]) - Convert.ToDouble(m.data[ix - 1][1]);
+                }
+                t2 = t2 / groupLengh;
+                y2 = y2 / groupLengh;
+
+                //get the first 4 from the last 8
+                double t1 = 0;
+                double y1 = 0;
+                for (var ix = m.data.Count - (groupLengh * 2); ix < m.data.Count - groupLengh; ix++)
+                {
+                    t1 += (double)m.data[ix][0];
+                    y1 += Convert.ToDouble(m.data[ix][1]) - Convert.ToDouble(m.data[ix - 1][1]);
+                }
+                t1 = t1 / groupLengh;
+                y1 = y1 / groupLengh;
+
+                //etm.data.Add(m.data.Last());
+                for (var ix = 1; ix <= length; ix++)
+                {
+                    double unixTimestamp = (DateTime.Today.AddDays(ix).Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
+                    unixTimestamp = unixTimestamp * 1000;
+
+                    var x = unixTimestamp;
+                    var r = ((y2 - y1) / (t2 - t1)) * (x - t1) + y1;
+                    etm.data.Add(new List<object>() { x, r });
+                }
+            }
+
+            var etl = new time_chart();
+            etl.name = "Estimate Infected";
+            etl.type = "spline";
+            etl.yAxis = 0;
+            etl.data = new List<List<object>>();
+            int firstValue = (int)m.data.Last()[1];
+            foreach (var e in etm.data)
+            {
+                firstValue += Convert.ToInt32(e[1]);
+                etl.data.Add(new List<object>() { e[0], firstValue });
+            }
+
+            charts.Add(etm);
+            charts.Add(etl);
+            return charts;
         }
 
         public JsonResult CountryDataActiveOnly(string country)
