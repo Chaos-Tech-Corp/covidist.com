@@ -60,6 +60,7 @@ namespace covidist.com.Controllers
         private static Dictionary<string, List<time_chart>> _charts = new Dictionary<string, List<time_chart>>();
         private static DateTime _lastCheck = DateTime.MinValue;
         private static Dictionary<string, Dictionary<DateTime, int>> _recoveries;
+        private static List<time_event> _events;
 
 
         public HomeController()
@@ -77,6 +78,7 @@ namespace covidist.com.Controllers
                     _charts.Add("infected", readAllData(null));
                     _charts.Add("lost", readAllData("lost"));
                     _recoveries = readRecoveries();
+                    _events = GetEvents();
                 }
             }
             ViewBag.countries = _charts["infected"].Select(C => C.name).ToList();
@@ -85,7 +87,6 @@ namespace covidist.com.Controllers
 
         public void DownloadFile()
         {
-            //return;
             //new cases/losts
             string url = "https://opendata.ecdc.europa.eu/covid19/casedistribution/csv";
             var net = new System.Net.WebClient();
@@ -100,7 +101,8 @@ namespace covidist.com.Controllers
 
         public string[] GetFile()
         {
-            string fileName = "c:\\temp\\" + DateTime.Today.ToString("yyyy-MM-dd") + ".csv";
+            DateTime when = DateTime.Today;
+            string fileName = "c:\\temp\\" + when.ToString("yyyy-MM-dd") + ".csv";
             if (!System.IO.File.Exists(fileName) || _lastCheck < DateTime.Now.AddHours(-1))
             {
                 DownloadFile();
@@ -116,6 +118,37 @@ namespace covidist.com.Controllers
                 DownloadFile();
             }
             return System.IO.File.ReadAllLines(fileName);
+        }
+
+        public List<time_event> GetEvents()
+        {
+            List<time_event> events = new List<time_event>();
+            foreach (string line in System.IO.File.ReadAllLines("c:\\temp\\events.csv"))
+            {
+                if (string.IsNullOrEmpty(line.Trim())) continue;
+                var values = line.Split(',');
+                events.Add(new time_event()
+                {
+                    country = values[0],
+                    when = DateTime.ParseExact(values[1], new string[] { "yyyy-MM-dd", "dd/MM/yyyy", "dd-MM-yyyy" }, CultureInfo.InvariantCulture),
+                    title = values[2]
+                });
+            }
+            return events;
+        }
+
+        public List<plotLine> GetLines(string country)
+        {
+            List<plotLine> lines = new List<plotLine>();
+            foreach(var e in _events.Where(E => E.country == country))
+            {
+                lines.Add(new plotLine() {
+                    label = new label() { text = e.title },
+                    value = e.when.ToUnixTime(),
+                    width = 1
+                });
+            }
+            return lines;
         }
 
         public JsonResult AllData(string field, string range, string adjust)
@@ -232,6 +265,10 @@ namespace covidist.com.Controllers
                 {
                     _recoveries = readRecoveries();
                 }
+                if (_events == null)
+                {
+                    _events = GetEvents();
+                }
             }
 
             if (string.IsNullOrEmpty(type))
@@ -332,7 +369,8 @@ namespace covidist.com.Controllers
                         m.data.Add(new List<object>() { i.data[ix][0], 0 });
                     }
                 }
-            } else
+            } 
+            else
             {
                 m.name = "Infected by Day";
                 m.data.Add(new List<object>() { i.data[0][0], i.data[0][1]});
@@ -402,7 +440,7 @@ namespace covidist.com.Controllers
             }
             //c.Add(et);
 
-            return new JsonResult(c);
+            return new JsonResult(new { series = c, lines = GetLines(country) });
         }
 
         public List<time_chart> Estimate_Value(time_chart m, int groupLengh, int length)

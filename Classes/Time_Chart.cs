@@ -11,3 +11,22 @@ public class time_chart
     public string type { get; set; }
     public int yAxis { get; set; }
 }
+
+public class time_event
+{
+    public string country { get; set; }
+    public DateTime when { get; set; }
+    public string title { get; set; }
+}
+
+public class plotLine
+{
+    public int width { get; set; }
+    public double value { get; set; }
+    public label label { get; set; }
+}
+
+public class label
+{
+    public string text { get; set; }
+}

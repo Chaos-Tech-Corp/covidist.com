@@ -193,7 +193,8 @@
                         title: {
                             text: 'Date'
                         },
-                        plotBands: plotBands
+                        plotBands: plotBands,
+                        plotLines: result.lines
                     },
                     yAxis: [{
                         title: {
@@ -233,7 +234,7 @@
                     },
 
 
-                    series: result,
+                    series: result.series,
 
                     responsive: {
                         rules: [{
