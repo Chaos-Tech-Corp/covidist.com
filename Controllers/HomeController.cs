@@ -85,7 +85,7 @@ namespace covidist.com.Controllers
 
         public void DownloadFile()
         {
-            return;
+            //return;
             //new cases/losts
             string url = "https://opendata.ecdc.europa.eu/covid19/casedistribution/csv";
             var net = new System.Net.WebClient();
