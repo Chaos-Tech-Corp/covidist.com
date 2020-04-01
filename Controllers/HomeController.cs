@@ -453,6 +453,13 @@ namespace covidist.com.Controllers
             etm.yAxis = 1;
             etm.data = new List<List<object>>();
 
+            double maxValue = 0;
+            for (var ix = m.data.Count - (groupLengh * 2); ix < m.data.Count; ix++)
+            {
+                maxValue += Math.Abs(Convert.ToDouble(m.data[ix][1]) - Convert.ToDouble(m.data[ix - 1][1]));
+            }
+            maxValue = maxValue / (groupLengh * 2);
+
             //it needs at least n+1 values
             if (m.data.Count > groupLengh + 1)
             {
@@ -463,7 +470,8 @@ namespace covidist.com.Controllers
                 {
                     t2 += (double)m.data[ix][0];
                     //cases by day, not the sum
-                    y2 += Convert.ToDouble(m.data[ix][1]) - Convert.ToDouble(m.data[ix - 1][1]);
+                    double value = Math.Abs(Convert.ToDouble(m.data[ix][1]) - Convert.ToDouble(m.data[ix - 1][1]));
+                    y2 += value > maxValue ? maxValue : value;
                 }
                 t2 = t2 / groupLengh;
                 y2 = y2 / groupLengh;
@@ -474,7 +482,9 @@ namespace covidist.com.Controllers
                 for (var ix = m.data.Count - (groupLengh * 2); ix < m.data.Count - groupLengh; ix++)
                 {
                     t1 += (double)m.data[ix][0];
-                    y1 += Convert.ToDouble(m.data[ix][1]) - Convert.ToDouble(m.data[ix - 1][1]);
+                    //y1 += Math.Abs(Convert.ToDouble(m.data[ix][1]) - Convert.ToDouble(m.data[ix - 1][1]));
+                    double value = Math.Abs(Convert.ToDouble(m.data[ix][1]) - Convert.ToDouble(m.data[ix - 1][1]));
+                    y1 += value > maxValue ? maxValue : value;
                 }
                 t1 = t1 / groupLengh;
                 y1 = y1 / groupLengh;
