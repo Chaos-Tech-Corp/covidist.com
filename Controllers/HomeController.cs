@@ -453,16 +453,19 @@ namespace covidist.com.Controllers
             etm.yAxis = 1;
             etm.data = new List<List<object>>();
 
-            double maxValue = 0;
-            for (var ix = m.data.Count - (groupLengh * 2); ix < m.data.Count; ix++)
-            {
-                maxValue += Math.Abs(Convert.ToDouble(m.data[ix][1]) - Convert.ToDouble(m.data[ix - 1][1]));
-            }
-            maxValue = maxValue / (groupLengh * 2);
+
 
             //it needs at least n+1 values
             if (m.data.Count > groupLengh + 1)
             {
+
+                double maxValue = 0;
+                for (var ix = m.data.Count - (groupLengh * 2); ix < m.data.Count; ix++)
+                {
+                    maxValue += Math.Abs(Convert.ToDouble(m.data[ix][1]) - Convert.ToDouble(m.data[ix - 1][1]));
+                }
+                maxValue = maxValue / (groupLengh * 2);
+
                 //get the last 4 entries
                 double t2 = 0;
                 double y2 = 0;
