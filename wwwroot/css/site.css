@@ -52,11 +52,13 @@ html {
     border:1px solid #ddd;
     border-radius:3px;
     position: absolute;
-    top: 6px;
-    left: 175px;
+    top: 7px;
+    left: 174px;
+    right:8px;
     padding: 4px 8px;
     background-color:#f0f0f0;
     display:flex;
+    overflow:auto;
 }
 
 .form_element {

@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>COVID-19 Distribution</title>
     <meta name="description" content="COVID-19 worldwide distrubution charts, ranges and country details." />
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.9/css/bootstrap-select.css" />
     <link rel="stylesheet" href="~/css/site.css" />
     @RenderSection("Style", required: false)
     <link rel="icon" href="/img/cropped-Icon_TransparentBg_1024x1024_72dpi-1-32x32.png" sizes="32x32" />
@@ -28,16 +29,6 @@
                     <img src="~/img/chaos_logo.png" style="max-height:42px" />
                     <span style="line-height:1; display:block;">COVID-19<br />Distribution</span>
                 </a>
-                @*<div class="navbar-collapse collapse d-sm-inline-flex flex-sm-row-reverse">
-                        <ul class="navbar-nav flex-grow-1">
-                            <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Portada</a>
-                                </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" href="/listado">Listado</a>
-                            </li>
-                        </ul>
-                    </div>*@
             </div>
         </nav>
     </header>
@@ -46,7 +37,12 @@
 
 
 
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    @*<script src="~/lib/jquery/dist/jquery.min.js"></script>*@
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.9/js/bootstrap-select.min.js"></script>
+
     @*<script src="~/js/site.js" asp-append-version="true"></script>*@
     @RenderSection("Scripts", required: false)
     <!-- Global site tag (gtag.js) - Google Analytics -->
