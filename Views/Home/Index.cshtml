@@ -26,7 +26,7 @@
                     <option>@c</option>
                 }
             </optgroup>
-    </select>
+        </select>
     </div>
     <div class="form_element">
         <select id="bnFilterType">
@@ -35,6 +35,26 @@
                 <option value="d">Cases by Day</option>
                 <option value="a">Active Cases</option>
                 <option value="e">Real Infected Estimate</option>
+            </optgroup>
+        </select>
+    </div>
+    <div class="form_element">
+        <select id="bnEstimateRange" data-width="fit">
+            <optgroup label="Range in Days">
+                @for (var i = 5; i < 21; i++)
+                {
+                    <option>@i</option>
+                }
+            </optgroup>
+        </select>
+    </div>
+    <div class="form_element">
+        <select id="bnEstimatePercent" data-width="fit">
+            <optgroup label="Death Rate %">
+                @for (var i = 1.0; i < 5.1; i+=0.1)
+                {
+                    <option>@i.ToString("0.0")</option>
+                }
             </optgroup>
         </select>
     </div>
@@ -169,11 +189,26 @@
                 });
             }
 
-            function loadCountry(filter, type) {
+            function loadCountry() {
 
-                $.post('/CountryData', { country: filter, type: type }, function (result) {
+                var filter = $("#bnFilterType").val(),
+                    cntry = $("#bnFilterCountry").val(),
+                    p = $("#bnEstimateRange").val(),
+                    r = $("#bnEstimatePercent").val();
+
+                if (filter == "e") {
+                    $("#bnEstimateRange").closest(".form_element").show();
+                    $("#bnEstimatePercent").closest(".form_element").show();
+                } else {
+                    $("#bnEstimateRange").closest(".form_element").hide();
+                    $("#bnEstimatePercent").closest(".form_element").hide();
+                }
+
+                $.post('/CountryData', { country: cntry, type: filter, r: r, p: p }, function (result) {
                     //check if the series contains an estimate
-                    var plotBands = [];
+                    var plotBands = [],
+                        has2Axis = false,
+                        yAxisConfig = [];
                     for (var i = 0; i < result.series.length; i++) {
                         if (result.series[i].name == 'Estimate Infected') {
                             plotBands = [{
@@ -184,9 +219,42 @@
                                 from: result.series[i].data[0][0] - 56400000, // Start of the plot band
                                 to: result.series[i].data[result.series[i].data.length - 1][0] + 76400000 // End of the plot band
                             }];
-                            break;
                         }
+                        if (result.series[i].yAxis > 0) {
+                            has2Axis = true;
+                        }
+                    };
+                    var yAxis0 = {
+                        title: {
+                            text: 'Cases'
+                        },
+                        type: $("#bnFilterScale").val()
+                        //, min: 0
+                    };
+                    yAxis1 = {
+                        title: {
+                            text: 'Multiplier by 4 days'
+                        }, min: 0,
+                        labels: {
+                            style: {
+                                color: Highcharts.getOptions().colors[0]
+                            }
+                        },
+                        opposite: true,
+                        plotLines: [{
+                            color: Highcharts.getOptions().colors[0],
+                            width: 1,
+                            value: 1,
+                            label: {
+                                text: 'No more new cases'
+                            }
+                        }]
+                    };
+                    yAxisConfig.push(yAxis0);
+                    if (has2Axis) {
+                        yAxisConfig.push(yAxis1);
                     }
+                    
                     chart = Highcharts.chart('container', {
                         chart: {
                             zoomType: 'xy'
@@ -206,32 +274,7 @@
                             plotBands: plotBands,
                             plotLines: result.lines
                         },
-                        yAxis: [{
-                            title: {
-                                text: 'Cases'
-                            },
-                            type: $("#bnFilterScale").val()
-                            //, min: 0
-                        }, {
-                            title: {
-                                text: 'Multiplier by 4 days'
-                            }, min: 0,
-                            labels: {
-                                style: {
-                                    color: Highcharts.getOptions().colors[0]
-                                }
-                            },
-                            opposite: true,
-                            plotLines: [{
-                                color: Highcharts.getOptions().colors[0],
-                                width: 1,
-                                value: 1,
-                                label: {
-                                    text: 'No more new cases'
-                                }
-                            }]
-                        }],
-
+                        yAxis: yAxisConfig,
                         legend: {
                             layout: 'vertical',
                             align: 'right',
@@ -270,7 +313,8 @@
 
                 $("#bnFilterAdjust").closest(".form_element").hide();
                 $("#bnFilterType").closest(".form_element").hide();
-
+                $("#bnEstimateRange").val("14").closest(".form_element").hide();
+                $("#bnEstimatePercent").val("1.5").closest(".form_element").hide();
 
                 $("#bnLegend").on("click", function () {
                     chart.update({
@@ -321,8 +365,8 @@
                     loadData($("#bnFilterLine").val(), $("#bnFilterDate").val(), $("#bnFilterAdjust").val());
                 });
 
-                $("#bnFilterType").on("change", function () {
-                    loadCountry($("#bnFilterCountry").val(), $("#bnFilterType").val());
+                $("#bnFilterType,#bnEstimateRange,#bnEstimatePercent").on("change", function () {
+                    loadCountry();
                 });
 
                 $("#bnFilterScale").on("change", function () {
@@ -352,7 +396,7 @@
                         $("#bnFilterDate").closest(".form_element").hide();
                         $("#bnFilterAdjust").closest(".form_element").hide();
                         $("#bnFilterType").closest(".form_element").show();
-                        loadCountry(_hash, $("#bnFilterType").val());
+                        loadCountry();
                     }
                 });
 

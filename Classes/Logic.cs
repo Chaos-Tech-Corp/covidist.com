@@ -647,7 +647,7 @@ public class Logic
             double value = Convert.ToDouble(e[1]);
             if (value <= 0) continue;
             value = Math.Round(value * 100 / rate);
-            date = date - (oneUnixDay + period);
+            date = date - (oneUnixDay * period);
 
             l.data.Add(new List<object>() { date, value });
         }

@@ -133,7 +133,14 @@ namespace covidist.com.Controllers
                 {
                     r = "1.5";
                 }
-                return new JsonResult(new { series = new List<time_chart>() { _logic.Estimate_Infection(_logic.GetLost(country), int.Parse(p), double.Parse(r)) }, lines = _logic.GetEventLines(country) });
+                var series = new List<time_chart>();
+                var l = _logic.GetLost(country);
+                series.Add(_logic.Estimate_Infection(l, int.Parse(p), double.Parse(r)));
+                var i = _logic.GetInfected(country);
+                i.name = "Confirmed Infected";
+                series.Add(i);
+                series.Add(l);
+                return new JsonResult(new { series = series, lines = _logic.GetEventLines(country) });
             } else {
                 return new JsonResult(new { series = _logic.GetCountryData(country, type), lines = _logic.GetEventLines(country) });
             }
