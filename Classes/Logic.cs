@@ -85,7 +85,7 @@ public class Logic
             //refresh every hour
             if (_charts.Count == 0 || _lastCheck < DateTime.Now.AddHours(-2))
             {
-                //DownloadFile();
+                DownloadFile();
                 _charts = new Dictionary<string, List<time_chart>>();
                 _charts.Add("infected", readAllData(null));
                 _charts.Add("lost", readAllData("lost"));
