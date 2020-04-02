@@ -135,7 +135,7 @@ namespace covidist.com.Controllers
                 }
                 var series = new List<time_chart>();
                 var l = _logic.GetLost(country);
-                series.Add(_logic.Estimate_Infection(l, int.Parse(p), double.Parse(r)));
+                series.AddRange(_logic.Estimate_Infection(l, int.Parse(p), double.Parse(r)));
                 var i = _logic.GetInfected(country);
                 i.name = "Confirmed Infected";
                 series.Add(i);

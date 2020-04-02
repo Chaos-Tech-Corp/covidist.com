@@ -318,7 +318,7 @@ public class Logic
             return GetCountryDataActiveOnly(country);
         } else if (type == "e")
         {
-            return new List<time_chart>() { Estimate_Infection(GetLost(country), 14, 1.5) };
+            return Estimate_Infection(GetLost(country), 14, 1.5);
         }
 
         //infected
@@ -633,7 +633,7 @@ public class Logic
     /// <param name="rate">% death rate</param>
     /// <param name="length">how many days to estimate</param>
     /// <returns></returns>
-    public time_chart Estimate_Infection(time_chart m, int period, double rate)
+    public List<time_chart> Estimate_Infection(time_chart m, int period, double rate)
     {
         var l = new time_chart();
         l.name = "Estimated Infected";
@@ -641,17 +641,27 @@ public class Logic
         l.yAxis = 0;
         l.data = new List<List<object>>();
 
+        var lr = new time_chart();
+        lr.name = "Estimated Range";
+        lr.type = "arearange";
+        lr.yAxis = 0;
+        lr.data = new List<List<object>>();
+        lr.zIndex = 0;
+        lr.fillOpacity = 0.3;
+        lr.color = "#7cb5ec";
+        lr.marker = new { enabled = false };
+
         foreach (var e in m.data)
         {
             double date = Convert.ToDouble(e[0]);
             double value = Convert.ToDouble(e[1]);
             if (value <= 0) continue;
-            value = Math.Round(value * 100 / rate);
             date = date - (oneUnixDay * period);
 
-            l.data.Add(new List<object>() { date, value });
+            l.data.Add(new List<object>() { date, Math.Round(value * 100 / rate) });
+            lr.data.Add(new List<object>() { date, Math.Round(value * 100 / (rate+0.5)), Math.Round(value * 100 / (rate-0.5)) });
         }
 
-        return l;
+        return new List<time_chart>() {lr, l };
     }
 }

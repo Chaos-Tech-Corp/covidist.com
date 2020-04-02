@@ -10,6 +10,10 @@ public class time_chart
     public List<List<object>> data { get; set; }
     public string type { get; set; }
     public int yAxis { get; set; }
+    public object fillOpacity { get; set; }
+    public object color { get; set; }
+    public object zIndex { get; set; }
+    public object marker { get; set; }
 }
 
 public class time_event
