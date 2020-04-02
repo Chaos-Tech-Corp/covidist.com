@@ -85,7 +85,7 @@ public class Logic
             //refresh every hour
             if (_charts.Count == 0 || _lastCheck < DateTime.Now.AddHours(-2))
             {
-                DownloadFile();
+                //DownloadFile();
                 _charts = new Dictionary<string, List<time_chart>>();
                 _charts.Add("infected", readAllData(null));
                 _charts.Add("lost", readAllData("lost"));
@@ -116,7 +116,7 @@ public class Logic
         string fileName = "c:\\temp\\" + when.ToString("yyyy-MM-dd") + ".csv";
         while (!System.IO.File.Exists(fileName))
         {
-            when.AddDays(-1);
+            when = when.AddDays(-1);
             fileName = "c:\\temp\\" + when.ToString("yyyy-MM-dd") + ".csv";
         }
         return System.IO.File.ReadAllLines(fileName);
@@ -128,8 +128,8 @@ public class Logic
         string fileName = "c:\\temp\\recover-" + when.ToString("yyyy-MM-dd") + ".csv";
         while (!System.IO.File.Exists(fileName))
         {
-            when.AddDays(-1);
-            fileName = "c:\\temp\\" + when.ToString("yyyy-MM-dd") + ".csv";
+            when = when.AddDays(-1);
+            fileName = "c:\\temp\\recover-" + when.ToString("yyyy-MM-dd") + ".csv";
         }
         return System.IO.File.ReadAllLines(fileName);
     }
@@ -348,8 +348,71 @@ public class Logic
             mr = CasesByDay(r);
         }
 
+
         List<time_chart> c = new List<time_chart>();
         c.Add(m);
+
+        //estimate of the multiplier
+        int lengthEstimation = 4;
+        if (type == "c")
+        {
+            var me = Estimate_Value(m, 2, lengthEstimation);
+            if (me.data != null && me.data.Count > 0) {
+                me.name = "Multiplier Estimate";
+                me.yAxis = 1;
+                me.type = "column";
+
+                //when this will be 1 or very close to 1
+                var t1 = (double)me.data.First()[1];
+                var t2 = (double)me.data.Last()[1];
+                double threshold = 1.01;
+                if (t2 < t1 && t2 > threshold)
+                {
+                    
+                    var temp = Estimate_Value(m, 2, 11);
+                    if ((double)temp.data.Last()[1] <= threshold)
+                    {
+                        for (int ix = 0; ix < temp.data.Count; ix++)
+                        {
+                            if ((double)temp.data[ix][1] <= threshold)
+                            {
+                                lengthEstimation = ix-1;
+                                me = Estimate_Value(m, 2, lengthEstimation);
+                                me.name = "Case Estimate";
+                                me.yAxis = 1;
+                                me.type = "column";
+                                break;
+                            }
+                        }
+                        if (lengthEstimation > 0)
+                        {
+                            //get the linear estimation
+                            var mline = Estimate_Value(m, 2, lengthEstimation);
+                            mline.name = "Estimate Infected";
+                            mline.yAxis = 0;
+                            mline.type = "spline";
+                            mline.data = new List<List<object>>();
+                            for (int ix = 0; ix < me.data.Count; ix++)
+                            {
+                                double value = 0;
+                                if (ix < 4)
+                                {
+                                    value = Convert.ToDouble(i.data[i.data.Count - (4 - ix)][1]);
+                                }
+                                else
+                                {
+                                    value = (double)mline.data[ix - 4][1];
+                                }
+                                mline.data.Add(new List<object>() { me.data[ix][0], value * (double)me.data[ix][1] });
+                            }
+                            c.Add(mline);
+                        }
+                    }
+                }
+                c.Add(me);
+            }
+        }
+
         if (ml.data != null && ml.data.Count > 0)
         {
             c.Add(ml);
@@ -368,7 +431,8 @@ public class Logic
             c.Add(r);
         }
 
-        var est = Estimate_Value(i, 2, 4); //2 groups of 2 items = last 4 days for sample, 2 days estimation
+        var est = Estimate_Series(i, 2, 4); //2 groups of 2 items = last 4 days for sample, 2 days estimation
+        //lengthEstimation = until end of spike
         if (est.First().data != null && est.First().data.Count > 0)
         {
             if (type == "d")
@@ -396,6 +460,7 @@ public class Logic
                 i.data.Add(new List<object>() { e[0], e[1] });
             }
         }
+        i.data = i.data.OrderBy(O => (double)O[0]).ToList();
         return i;
     }
 
@@ -417,7 +482,7 @@ public class Logic
                 }
             }
         }
-
+        l.data = l.data.OrderBy(O => (double)O[0]).ToList();
         return l;
     }
 
@@ -437,6 +502,7 @@ public class Logic
                     r.data.Add(new List<object>() { e.Key.ToUnixTime(), e.Value });
                 }
             }
+            r.data = r.data.OrderBy(O => (double)O[0]).ToList();
         }
         return r;
     }
@@ -543,7 +609,7 @@ public class Logic
     /// <param name="groupLengh">length of the estimation group</param>
     /// <param name="length">how many days to estimate</param>
     /// <returns></returns>
-    public List<time_chart> Estimate_Value(time_chart m, int groupLengh, int length)
+    public List<time_chart> Estimate_Series(time_chart m, int groupLengh, int length)
     {
         List<time_chart> charts = new List<time_chart>();
 
@@ -625,6 +691,66 @@ public class Logic
         return charts;
     }
 
+    public time_chart Estimate_Value(time_chart m, int groupLengh, int length)
+    {
+
+        var etm = new time_chart();
+        etm.data = new List<List<object>>();
+        //it needs at least n+1 values
+        if (m.data.Count > groupLengh + 1)
+        {
+
+            double maxValue = 0;
+            for (var ix = m.data.Count - (groupLengh * 2); ix < m.data.Count; ix++)
+            {
+                maxValue += Convert.ToDouble(m.data[ix][1]);
+            }
+            maxValue = maxValue / (groupLengh * 2);
+
+            //get the last 4 entries
+            double t2 = 0;
+            double y2 = 0;
+            for (var ix = m.data.Count - groupLengh; ix < m.data.Count; ix++)
+            {
+                t2 += (double)m.data[ix][0];
+                //cases by day, not the sum
+                double value = Convert.ToDouble(m.data[ix][1]);
+                y2 += value > maxValue ? maxValue : value;
+            }
+            t2 = t2 / groupLengh;
+            y2 = y2 / groupLengh;
+
+            //get the first 4 from the last 8
+            double t1 = 0;
+            double y1 = 0;
+            for (var ix = m.data.Count - (groupLengh * 2); ix < m.data.Count - groupLengh; ix++)
+            {
+                t1 += (double)m.data[ix][0];
+                //y1 += Math.Abs(Convert.ToDouble(m.data[ix][1]) - Convert.ToDouble(m.data[ix - 1][1]));
+                double value =Convert.ToDouble(m.data[ix][1]);
+                y1 += value > maxValue ? maxValue : value;
+            }
+            t1 = t1 / groupLengh;
+            y1 = y1 / groupLengh;
+
+            //last day in the series
+            double lastDay = (double)m.data.Last()[0];
+
+            //etm.data.Add(m.data.Last());
+            for (var ix = 1; ix <= length; ix++)
+            {
+                //double unixTimestamp = (DateTime.Today.AddDays(ix).Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
+                //unixTimestamp = unixTimestamp * 1000;
+                lastDay += oneUnixDay;
+
+                var x = lastDay;
+                var r = ((y2 - y1) / (t2 - t1)) * (x - t1) + y1;
+                etm.data.Add(new List<object>() { x, r });
+            }
+        }
+        return etm;
+    }
+
     /// <summary>
     /// Estimates the number of infected people based on the number of deaths and the casualty %
     /// </summary>
@@ -640,6 +766,7 @@ public class Logic
         l.type = "spline";
         l.yAxis = 0;
         l.data = new List<List<object>>();
+        l.marker = new { enabled = false };
 
         var lr = new time_chart();
         lr.name = "Estimated Range";

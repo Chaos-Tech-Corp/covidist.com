@@ -109,16 +109,17 @@
 
             function loadData(filter, range, adjust) {
                 if (chart != null) {
-                    vSeries = [];
                     for (var i = 0; i < chart.series.length; i++) {
                         vSeries[chart.series[i].name] = chart.series[i].visible;
                     }
                 }
                 $.post('/AllData', { field: filter, range: range, adjust: adjust }, function (result) {
-                    for (var i = 0; i < result.length; i++) {
-                        result[i].visible = vSeries[result[i].name];
+                    if (chart != null) {
+                        for (var i = 0; i < result.length; i++) {
+                            var vValue = vSeries[result[i].name];
+                            result[i].visible = vValue === undefined  ? 'false' : vValue;
+                        }
                     }
-
 
                     chart = Highcharts.chart('container', {
                         chart: {
@@ -212,7 +213,7 @@
                         yAxisConfig = [];
                     for (var i = 0; i < result.series.length; i++) {
                         if (result.series[i].name == 'Estimate Infected') {
-                            plotBands = [{
+                            plotBands = plotBands.length > 0 ? plotBands : [{
                                 label: {
                                     text: 'Estimate'
                                 },
