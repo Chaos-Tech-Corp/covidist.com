@@ -57,6 +57,7 @@ public class Logic
     private DateTime _lastCheck = DateTime.MinValue;
     private Dictionary<string, Dictionary<DateTime, int>> _recoveries;
     private List<time_event> _events;
+    private List<string> _countries = new List<string>();
 
     public Dictionary<string, List<time_chart>> charts
     {
@@ -86,6 +87,7 @@ public class Logic
             if (_charts.Count == 0 || _lastCheck < DateTime.Now.AddHours(-2))
             {
                 DownloadFile();
+                _countries = new List<string>();
                 _charts = new Dictionary<string, List<time_chart>>();
                 _charts.Add("infected", readAllData(null));
                 _charts.Add("lost", readAllData("lost"));
@@ -110,7 +112,7 @@ public class Logic
         System.IO.File.WriteAllBytes("c:\\temp\\recover-" + DateTime.Today.ToString("yyyy-MM-dd") + ".csv", data);
     }
 
-    public string[] GetFile()
+    public List<string[]> GetFile()
     {
         DateTime when = DateTime.Today;
         string fileName = "c:\\temp\\" + when.ToString("yyyy-MM-dd") + ".csv";
@@ -119,10 +121,10 @@ public class Logic
             when = when.AddDays(-1);
             fileName = "c:\\temp\\" + when.ToString("yyyy-MM-dd") + ".csv";
         }
-        return System.IO.File.ReadAllLines(fileName);
+        return Extensions.SplitCSV(fileName);
     }
 
-    public string[] GetRecoveries()
+    public List<string[]> GetRecoveries()
     {
         var when = DateTime.Today;
         string fileName = "c:\\temp\\recover-" + when.ToString("yyyy-MM-dd") + ".csv";
@@ -131,7 +133,7 @@ public class Logic
             when = when.AddDays(-1);
             fileName = "c:\\temp\\recover-" + when.ToString("yyyy-MM-dd") + ".csv";
         }
-        return System.IO.File.ReadAllLines(fileName);
+        return Extensions.SplitCSV(fileName);
     }
 
     public List<time_event> GetEvents()
@@ -172,11 +174,11 @@ public class Logic
         int lineIx = 0;
         var charts = new List<time_chart>();
         Dictionary<string, string> countries = new Dictionary<string, string>();
-        foreach (string line in GetFile())
+        var fileLines = GetFile();
+        foreach (string[] values in fileLines)
         {
             lineIx++;
             if (lineIx == 1) continue;
-            var values = line.Split(',');
             if (string.IsNullOrEmpty(values[8]) || values[8] == "N/A")
             {
                 continue;
@@ -196,12 +198,11 @@ public class Logic
         }
 
         lineIx = 0;
-        foreach (string line in GetFile())
+        foreach (string[] values in fileLines)
         {
             lineIx++;
             if (lineIx == 1) continue;
 
-            var values = line.Split(',');
             DateTime when = DateTime.ParseExact(values[0], new string[] { "dd/MM/yyyy", "dd-MM-yyyy" }, CultureInfo.InvariantCulture);
             int infected = int.Parse(values[fieldIndex]);
             //int lost = int.Parse(values[5]);
@@ -251,28 +252,33 @@ public class Logic
         var data = new Dictionary<string, Dictionary<DateTime, int>>();
         DateTime triggerDate = new DateTime(2020, 1, 20);
 
+        if (_countries == null || _countries.Count ==0)
+        {
+            _countries = _charts["infected"].Select(S => S.name).ToList();
+        }
+
         int lineIx = 0;
-        foreach (string line in GetRecoveries())
+        foreach (string[] values in GetRecoveries())
         {
             lineIx++;
             if (lineIx <= 3) continue;
 
-            string[] values = line.Split(',');
+            
             DateTime when;
             string country;
             int recovered = 0;
-            if (line[1] == '"')
+
+            when = DateTime.ParseExact(values[4], new string[] { "yyyy-MM-dd", "dd/MM/yyyy", "dd-MM-yyyy" }, CultureInfo.InvariantCulture);
+            recovered = int.Parse(values[5]);
+            country = values[0];
+
+            if (countryMappings.ContainsKey(country))
             {
-                when = DateTime.ParseExact(values[5], new string[] { "yyyy-MM-dd", "dd/MM/yyyy", "dd-MM-yyyy" }, CultureInfo.InvariantCulture);
-                recovered = int.Parse(values[6]);
-                country = values[1].Replace("\"", "").Trim() + ", " + values[2].Replace("\"", "").Trim();
-            }
-            else
-            {
-                when = DateTime.ParseExact(values[4], new string[] { "yyyy-MM-dd", "dd/MM/yyyy", "dd-MM-yyyy" }, CultureInfo.InvariantCulture);
-                recovered = int.Parse(values[5]);
+                country = countryMappings[country];
+            } else if (!_countries.Contains(country.Replace(" ","_"))) {
                 country = values[1];
             }
+            
 
 
 
