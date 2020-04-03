@@ -121,7 +121,12 @@ namespace covidist.com.Controllers
         {
             if (type == "a")
             {
-                return new JsonResult(new { series = _logic.GetCountryDataActiveOnly(country), lines = _logic.GetEventLines(country) });
+                var lDay = _logic.CasesByDay(_logic.GetLost(country));
+                lDay.yAxis = 0;
+                return new JsonResult(new { series = new List<time_chart>() { 
+                    _logic.GetCountryDataActiveOnly(country),
+                    lDay
+                }, lines = _logic.GetEventLines(country) });
             }
             else if (type == "e")
             {
@@ -137,10 +142,15 @@ namespace covidist.com.Controllers
                 var l = _logic.GetLost(country);
                 l.marker = new { enabled = false };
                 series.AddRange(_logic.Estimate_Infection(l, int.Parse(p), double.Parse(r)));
-                var i = _logic.GetInfected(country);
-                i.name = "Confirmed Infected";
+                
+                var i = _logic.GetCountryDataActiveOnly(country); //_logic.GetInfected(country);
+                i.name = "Active Confirmed Infected";
                 i.marker = new { enabled = false };
                 series.Add(i);
+
+                l = _logic.CasesByDay(l);
+                l.yAxis = 0;
+
                 series.Add(l);
                 return new JsonResult(new { series = series, lines = _logic.GetEventLines(country) });
             } else {
@@ -150,7 +160,7 @@ namespace covidist.com.Controllers
 
         public JsonResult CountryDataActiveOnly(string country)
         {
-            return new JsonResult(new { series = _logic.GetCountryDataActiveOnly(country), lines = _logic.GetEventLines(country) });
+            return new JsonResult(new { series = new List<time_chart>() { _logic.GetCountryDataActiveOnly(country) }, lines = _logic.GetEventLines(country) });
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

@@ -86,7 +86,9 @@ public class Logic
             //refresh every hour
             if (_charts.Count == 0 || _lastCheck < DateTime.Now.AddHours(-2))
             {
+#if !DEBUG
                 DownloadFile();
+#endif
                 _countries = new List<string>();
                 _charts = new Dictionary<string, List<time_chart>>();
                 _charts.Add("infected", readAllData(null));
@@ -317,14 +319,6 @@ public class Logic
         if (type != "c" && type != "d" && type != "a" && type != "e")
         {
             type = "c";
-        }
-
-        if (type == "a")
-        {
-            return GetCountryDataActiveOnly(country);
-        } else if (type == "e")
-        {
-            return Estimate_Infection(GetLost(country), 14, 1.5);
         }
 
         //infected
@@ -570,13 +564,14 @@ public class Logic
         return m;
     }
 
-    public List<time_chart> GetCountryDataActiveOnly(string country)
+    public time_chart GetCountryDataActiveOnly(string country)
     {
         var i = new time_chart();
         i.name = "Infected";
         i.type = "spline";
         i.yAxis = 0;
         i.data = new List<List<object>>();
+        i.marker = new { enabled = false };
         if (recoveries.ContainsKey(country))
         {
             var recoveries = _recoveries[country];
@@ -602,10 +597,7 @@ public class Logic
             i.name = "No recovey data available";
         }
 
-        List<time_chart> c = new List<time_chart>();
-        c.Add(i);
-
-        return c;
+        return i;
     }
 
     /// <summary>
@@ -784,10 +776,12 @@ public class Logic
         lr.color = "#7cb5ec";
         lr.marker = new { enabled = false };
 
-        foreach (var e in m.data)
+        //need to be done using the daily cases, not the total value
+        for(var ix = 1; ix < m.data.Count; ix++)
         {
+            var e = m.data[ix];
             double date = Convert.ToDouble(e[0]);
-            double value = Convert.ToDouble(e[1]);
+            double value = Convert.ToDouble(e[1]) - Convert.ToDouble(m.data[ix-1][1]);
             if (value <= 0) continue;
             date = date - (oneUnixDay * period);
 
