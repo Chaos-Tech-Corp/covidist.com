@@ -117,31 +117,28 @@ namespace covidist.com.Controllers
             return new JsonResult(data2Use);
         }
 
-        public JsonResult CountryData(string country, string type, string p, string r)
+        public JsonResult CountryData(string country, string type, string s)
         {
             if (type == "a")
             {
                 var lDay = _logic.CasesByDay(_logic.GetLost(country));
                 lDay.yAxis = 0;
+                var active = _logic.GetCountryDataActiveOnly(country);
                 return new JsonResult(new { series = new List<time_chart>() { 
-                    _logic.GetCountryDataActiveOnly(country),
+                    active,
                     lDay
                 }, lines = _logic.GetEventLines(country) });
             }
             else if (type == "e")
             {
-                if (string.IsNullOrEmpty(p))
+                if (string.IsNullOrEmpty(s))
                 {
-                    p = "14";
-                }
-                if (string.IsNullOrEmpty(r))
-                {
-                    r = "1.5";
+                    s = "6.5";
                 }
                 var series = new List<time_chart>();
                 var l = _logic.GetLost(country);
                 l.marker = new { enabled = false };
-                series.AddRange(_logic.Estimate_Infection(l, int.Parse(p), double.Parse(r)));
+                //series.AddRange(_logic.Estimate_Infection(l, int.Parse(p), double.Parse(r)));
                 
                 var i = _logic.GetCountryDataActiveOnly(country); //_logic.GetInfected(country);
                 i.name = "Active Confirmed Infected";
@@ -152,6 +149,8 @@ namespace covidist.com.Controllers
                 l.yAxis = 0;
 
                 series.Add(l);
+
+                series.Add(_logic.Estimte_Propagation(i, double.Parse(s)));
                 return new JsonResult(new { series = series, lines = _logic.GetEventLines(country) });
             } else {
                 return new JsonResult(new { series = _logic.GetCountryData(country, type), lines = _logic.GetEventLines(country) });
@@ -160,7 +159,9 @@ namespace covidist.com.Controllers
 
         public JsonResult CountryDataActiveOnly(string country)
         {
-            return new JsonResult(new { series = new List<time_chart>() { _logic.GetCountryDataActiveOnly(country) }, lines = _logic.GetEventLines(country) });
+            var active = _logic.GetCountryDataActiveOnly(country);
+            var estimate = _logic.Estimte_Propagation(active, 6.5);
+            return new JsonResult(new { series = new List<time_chart>() { active, estimate }, lines = _logic.GetEventLines(country) });
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

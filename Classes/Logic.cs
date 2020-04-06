@@ -698,12 +698,18 @@ public class Logic
         if (m.data.Count > groupLengh + 1)
         {
 
-            double maxValue = 0;
-            for (var ix = m.data.Count - (groupLengh * 2); ix < m.data.Count; ix++)
-            {
-                maxValue += Convert.ToDouble(m.data[ix][1]);
-            }
-            maxValue = maxValue / (groupLengh * 2);
+            //double maxValue = 0;
+            //if (useMaxValue)
+            //{
+            //    for (var ix = m.data.Count - (groupLengh * 2); ix < m.data.Count; ix++)
+            //    {
+            //        maxValue += Convert.ToDouble(m.data[ix][1]);
+            //    }
+            //    maxValue = maxValue / (groupLengh * 2);
+            //} else
+            //{
+            //    maxValue = double.MaxValue;
+            //}
 
             //get the last 4 entries
             double t2 = 0;
@@ -713,7 +719,7 @@ public class Logic
                 t2 += (double)m.data[ix][0];
                 //cases by day, not the sum
                 double value = Convert.ToDouble(m.data[ix][1]);
-                y2 += value > maxValue ? maxValue : value;
+                y2 += value; //> maxValue ? maxValue : value;
             }
             t2 = t2 / groupLengh;
             y2 = y2 / groupLengh;
@@ -726,7 +732,7 @@ public class Logic
                 t1 += (double)m.data[ix][0];
                 //y1 += Math.Abs(Convert.ToDouble(m.data[ix][1]) - Convert.ToDouble(m.data[ix - 1][1]));
                 double value =Convert.ToDouble(m.data[ix][1]);
-                y1 += value > maxValue ? maxValue : value;
+                y1 += value;// > maxValue ? maxValue : value;
             }
             t1 = t1 / groupLengh;
             y1 = y1 / groupLengh;
@@ -790,5 +796,97 @@ public class Logic
         }
 
         return new List<time_chart>() {lr, l };
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="m">active cases</param>
+    /// <param name="s">transmisibilidad</param>
+    public time_chart Estimte_Propagation(time_chart m, double s)
+    {
+
+        //add 2 days estimation
+        time_chart tmp = new time_chart();
+        tmp.data = m.data.ToList();
+        tmp.data.AddRange(Estimate_Value(m, 2, 4).data);
+
+        double aMax = 0; //A(max) -- max numbers of persons infected in a day
+        double tMax = 0; //tm -- day of max numbers of persons infected
+        int ix = 1;
+        double day1 = Convert.ToDouble(tmp.data[0][0]);
+
+        foreach (var e in tmp.data.OrderBy(O => O[0]))
+        {
+            double date = Convert.ToDouble(e[0]);
+            double value = Convert.ToDouble(e[1]);
+            if (value > aMax)
+            {
+                aMax = value;
+                tMax = ix;
+            }
+            ix++;
+        }
+
+        //calculate the initial function
+
+        time_chart c = PropagationFunction(tmp, aMax, tMax, s, day1);
+
+
+
+
+        //try to adjust the chart
+        //when is the 30%
+        var teP = tmp.data.Where(D => Convert.ToDouble(D[1]) <= (aMax * 3 / 10) && Convert.ToDouble(D[0]) <= day1  + tMax * oneUnixDay).OrderBy(O => (double)O[0]).Last();
+        var tmP = c.data.Where(D => Convert.ToDouble(D[1]) < Convert.ToDouble(teP[1]) && Convert.ToDouble(D[0]) <= day1 + tMax * oneUnixDay).OrderBy(O => (double)O[0]).Last();
+        //adjust the day difference
+        if ((double)teP[0] - (double)tmP[0] > 0)
+        {
+            var dayDiff = Math.Abs((double)teP[0] - (double)tmP[0]) / oneUnixDay;
+
+            //when is the 60%
+            teP = tmp.data.Where(D => Convert.ToDouble(D[1]) <= (aMax * 6 / 10) && Convert.ToDouble(D[0]) <= day1 + tMax * oneUnixDay).OrderBy(O => (double)O[0]).Last();
+            tmP = c.data.Where(D => Convert.ToDouble(D[1]) < Convert.ToDouble(teP[1]) && Convert.ToDouble(D[0]) <= day1 + tMax * oneUnixDay).OrderBy(O => (double)O[0]).Last();
+            dayDiff += Math.Abs((double)teP[0] - (double)tmP[0]) / oneUnixDay;
+
+            //when is the 90%
+            teP = tmp.data.Where(D => Convert.ToDouble(D[1]) <= (aMax * 9 / 10) && Convert.ToDouble(D[0]) <= day1 + tMax * oneUnixDay).OrderBy(O => (double)O[0]).Last();
+            tmP = c.data.Where(D => Convert.ToDouble(D[1]) < Convert.ToDouble(teP[1]) && Convert.ToDouble(D[0]) <= day1 + tMax * oneUnixDay).OrderBy(O => (double)O[0]).Last();
+            dayDiff += Math.Abs((double)teP[0] - (double)tmP[0]) / oneUnixDay;
+
+            //average?
+            dayDiff = dayDiff / 3;
+
+            c = PropagationFunction(tmp, aMax, tMax + dayDiff, s, day1);
+        }
+
+        return c;
+    }
+
+    time_chart PropagationFunction(time_chart m, double aMax, double tMax, double s, double day1)
+    {
+        time_chart c = new time_chart();
+        c.type = "spline";
+        c.yAxis = 0;
+        c.name = "Estimation";
+        c.marker = new { enabled = false };
+        c.data = new List<List<object>>();
+        var ix = 1;
+        while (true)
+        {
+            var value = fValue(aMax, tMax, s, ix);
+            c.data.Add(new List<object>() { day1 + oneUnixDay * (ix - 1), value });
+            ix++;
+            if (ix > tMax && value <= 10)
+            {
+                break;
+            }
+        }
+        return c;
+    }
+
+    double fValue(double aMax, double tMax, double s, int day)
+    {
+        return aMax * Math.Exp((-1 / (2 * s)) * (Math.Pow(day - tMax, 2) / day));
     }
 }

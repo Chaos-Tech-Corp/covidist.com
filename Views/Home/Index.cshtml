@@ -34,30 +34,41 @@
                 <option value="c">Cummulative</option>
                 <option value="d">Cases by Day</option>
                 <option value="a">Active Cases</option>
-                <option value="e">Infected Estimate</option>
+                <option value="e">Infection Estimate</option>
             </optgroup>
         </select>
     </div>
+    
     <div class="form_element">
-        <select id="bnEstimateRange" data-width="fit">
-            <optgroup label="Range in Days">
-                @for (var i = 5; i < 21; i++)
-                {
-                    <option>@i</option>
-                }
-            </optgroup>
-        </select>
-    </div>
-    <div class="form_element">
-        <select id="bnEstimatePercent" data-width="fit">
-            <optgroup label="Death Rate %">
-                @for (var i = 1.0; i < 5.1; i+=0.1)
+        <select id="bnTransmissibility" data-width="fit">
+            <optgroup label="Transmissibility">
+                @for (var i = 1.0; i <= 10; i += 0.5)
                 {
                     <option>@i.ToString("0.0")</option>
                 }
             </optgroup>
         </select>
     </div>
+    @*<div class="form_element">
+            <select id="bnEstimateRange" data-width="fit">
+                <optgroup label="Range in Days">
+                    @for (var i = 5; i < 21; i++)
+                    {
+                        <option>@i</option>
+                    }
+                </optgroup>
+            </select>
+        </div>
+        <div class="form_element">
+            <select id="bnEstimatePercent" data-width="fit">
+                <optgroup label="Death Rate %">
+                    @for (var i = 1.0; i < 5.1; i+=0.1)
+                    {
+                        <option>@i.ToString("0.0")</option>
+                    }
+                </optgroup>
+            </select>
+        </div>*@
     <div class="form_element">
         <select id="bnFilterLine">
             <optgroup label="Data to Display">
@@ -218,18 +229,15 @@
 
                 var filter = $("#bnFilterType").val(),
                     cntry = $("#bnFilterCountry").val(),
-                    p = $("#bnEstimateRange").val(),
-                    r = $("#bnEstimatePercent").val();
+                    s = $("#bnTransmissibility").val();
 
                 if (filter == "e") {
-                    $("#bnEstimateRange").closest(".form_element").show();
-                    $("#bnEstimatePercent").closest(".form_element").show();
+                    $("#bnTransmissibility").closest(".form_element").show();
                 } else {
-                    $("#bnEstimateRange").closest(".form_element").hide();
-                    $("#bnEstimatePercent").closest(".form_element").hide();
+                    $("#bnTransmissibility").closest(".form_element").hide();
                 }
 
-                $.post('/CountryData', { country: cntry, type: filter, r: r, p: p }, function (result) {
+                $.post('/CountryData', { country: cntry, type: filter, s: s }, function (result) {
                     //check if the series contains an estimate
                     var plotBands = [],
                         has2Axis = false,
@@ -338,8 +346,7 @@
 
                 $("#bnFilterAdjust").closest(".form_element").hide();
                 $("#bnFilterType").closest(".form_element").hide();
-                $("#bnEstimateRange").val("14").closest(".form_element").hide();
-                $("#bnEstimatePercent").val("1.5").closest(".form_element").hide();
+                $("#bnTransmissibility").val("3.5").closest(".form_element").hide();
 
                 $("#bnLegend").on("click", function () {
                     chart.update({
@@ -390,7 +397,7 @@
                     loadData($("#bnFilterLine").val(), $("#bnFilterDate").val(), $("#bnFilterAdjust").val());
                 });
 
-                $("#bnFilterType,#bnEstimateRange,#bnEstimatePercent").on("change", function () {
+                $("#bnFilterType,#bnTransmissibility").on("change", function () {
                     loadCountry();
                 });
 
