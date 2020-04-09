@@ -72,8 +72,12 @@
     <div class="form_element">
         <select id="bnFilterLine">
             <optgroup label="Data to Display">
-                <option value="infected">Infected</option>
-                <option value="lost">Lost</option>
+                <option value="infected">Total Infected</option>
+                <option value="pinfected">% Infected</option>
+
+                <option value="lost">Total Lost</option>
+                <option value="plost">% Lost</option>
+
                 <option value="active">Active Cases</option>
             </optgroup>
         </select>
@@ -363,7 +367,7 @@
                                 chart.series[i].hide();
                                 hideAll(++i);
                             }
-                        }, 50);
+                        }, 10);
                     }
                     hideAll(0);
                 });
@@ -374,7 +378,7 @@
                                 chart.series[i].show();
                                 showAll(++i);
                             }
-                        }, 50);
+                        }, 10);
                     }
                     showAll(0);
                 });

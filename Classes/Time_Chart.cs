@@ -14,6 +14,8 @@ public class time_chart
     public object color { get; set; }
     public object zIndex { get; set; }
     public object marker { get; set; }
+
+    public double population { get; set; }
 }
 
 public class time_event

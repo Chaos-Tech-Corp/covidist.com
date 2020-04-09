@@ -188,7 +188,7 @@ public class Logic
             if (!countries.ContainsKey(values[6]))
             {
                 countries.Add(values[6], values[6]);
-                charts.Add(new time_chart() { name = values[6], yAxis = 0, type = "spline", data = new List<List<object>>() });
+                charts.Add(new time_chart() { name = values[6], population = double.Parse("0" + values[9]), yAxis = 0, type = "spline", data = new List<List<object>>() });
             }
         }
 
@@ -883,6 +883,33 @@ public class Logic
             }
         }
         return c;
+    }
+
+    public time_chart Convert2Population(time_chart m)
+    {
+        var t = new time_chart();
+        t.marker = m.marker;
+        t.data = new List<List<object>>();
+        t.color = m.color;
+        t.name = m.name;
+        t.population = m.population;
+        t.type = m.type;
+        t.yAxis = m.yAxis;
+        t.zIndex = m.zIndex;
+
+        double population = m.population;
+        //no population value, return empty
+        if (population <= 0) return t;
+
+        var multiplier = 100 / population;
+        foreach (var e in m.data)
+        {
+            double val = Math.Round(Convert.ToDouble(e[1]) * multiplier, 2);
+            t.data.Add(new List<object>() { e[0], val });
+        }
+
+
+        return t;
     }
 
     double fValue(double aMax, double tMax, double s, int day)

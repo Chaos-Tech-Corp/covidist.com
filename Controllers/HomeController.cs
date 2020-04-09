@@ -33,7 +33,7 @@ namespace covidist.com.Controllers
             {
                 field = "infected";
             }
-            if (field != "infected" && field != "lost" && field != "active")
+            if (field != "infected" && field != "lost" && field != "active" && field != "pinfected" && field != "plost")
             {
                 field = "infected";
             }
@@ -79,7 +79,17 @@ namespace covidist.com.Controllers
 
             } else
             {
-                data2Use = _logic.charts[field];
+                data2Use = new List<time_chart>();
+                if (field == "pinfected" || field == "plost")
+                {
+                    foreach(var c in _logic.charts[field.Substring(1)])
+                    {
+                        data2Use.Add(_logic.Convert2Population(c));
+                    }
+                }else
+                {
+                    data2Use = _logic.charts[field];
+                }
             }
             //adjust the ranges by 100 cases or closest figure
             if (range == "pandemic")
