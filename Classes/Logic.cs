@@ -878,8 +878,8 @@ public class Logic
         var ix = 1;
         while (true)
         {
-            var value = fValue(aMax, tMax, s, ix);
-            c.data.Add(new List<object>() { day1 + oneUnixDay * (ix - 1), value });
+            var value =  fValue(aMax, tMax, s, ix);
+            c.data.Add(new List<object>() { day1 + oneUnixDay * (ix - 1), Math.Round( value) });
             ix++;
             if (ix > tMax && value <= 10)
             {
