@@ -677,13 +677,15 @@ public class Logic
         etl.type = "spline";
         etl.yAxis = 0;
         etl.data = new List<List<object>>();
-        int firstValue = (int)m.data.Last()[1];
-        foreach (var e in etm.data)
+        if (m.data.Count > groupLengh + 1)
         {
-            firstValue += Convert.ToInt32(e[1]);
-            etl.data.Add(new List<object>() { e[0], firstValue });
+            int firstValue = (int)m.data.Last()[1];
+            foreach (var e in etm.data)
+            {
+                firstValue += Convert.ToInt32(e[1]);
+                etl.data.Add(new List<object>() { e[0], firstValue });
+            }
         }
-
         charts.Add(etm);
         charts.Add(etl);
         return charts;
@@ -803,13 +805,19 @@ public class Logic
     /// </summary>
     /// <param name="m">active cases</param>
     /// <param name="s">transmisibilidad</param>
-    public time_chart Estimte_Propagation(time_chart m, double s)
+    public time_chart Estimte_Propagation(time_chart m, double s, string type = "value")
     {
 
         //add 2 days estimation
         time_chart tmp = new time_chart();
         tmp.data = m.data.ToList();
-        tmp.data.AddRange(Estimate_Value(m, 2, 4).data);
+        if (type == "series")
+        {
+            tmp.data.AddRange(Estimate_Series(m, 2, 4)[1].data);
+        } else
+        {
+            tmp.data.AddRange(Estimate_Value(m, 2, 4).data);
+        }
 
         double aMax = 0; //A(max) -- max numbers of persons infected in a day
         double tMax = 0; //tm -- day of max numbers of persons infected
@@ -829,30 +837,26 @@ public class Logic
         }
 
         //calculate the initial function
-
         time_chart c = PropagationFunction(tmp, aMax, tMax, s, day1);
-
-
-
 
         //try to adjust the chart
         //when is the 30%
         var teP = tmp.data.Where(D => Convert.ToDouble(D[1]) <= (aMax * 3 / 10) && Convert.ToDouble(D[0]) <= day1  + tMax * oneUnixDay).OrderBy(O => (double)O[0]).Last();
         var tmP = c.data.Where(D => Convert.ToDouble(D[1]) < Convert.ToDouble(teP[1]) && Convert.ToDouble(D[0]) <= day1 + tMax * oneUnixDay).OrderBy(O => (double)O[0]).Last();
         //adjust the day difference
-        if ((double)teP[0] - (double)tmP[0] > 0)
+        if (Math.Abs((double)teP[0] - (double)tmP[0])> 0)
         {
-            var dayDiff = Math.Abs((double)teP[0] - (double)tmP[0]) / oneUnixDay;
+            var dayDiff = ((double)teP[0] - (double)tmP[0]) / oneUnixDay;
 
             //when is the 60%
             teP = tmp.data.Where(D => Convert.ToDouble(D[1]) <= (aMax * 6 / 10) && Convert.ToDouble(D[0]) <= day1 + tMax * oneUnixDay).OrderBy(O => (double)O[0]).Last();
             tmP = c.data.Where(D => Convert.ToDouble(D[1]) < Convert.ToDouble(teP[1]) && Convert.ToDouble(D[0]) <= day1 + tMax * oneUnixDay).OrderBy(O => (double)O[0]).Last();
-            dayDiff += Math.Abs((double)teP[0] - (double)tmP[0]) / oneUnixDay;
+            dayDiff += ((double)teP[0] - (double)tmP[0]) / oneUnixDay;
 
             //when is the 90%
             teP = tmp.data.Where(D => Convert.ToDouble(D[1]) <= (aMax * 9 / 10) && Convert.ToDouble(D[0]) <= day1 + tMax * oneUnixDay).OrderBy(O => (double)O[0]).Last();
             tmP = c.data.Where(D => Convert.ToDouble(D[1]) < Convert.ToDouble(teP[1]) && Convert.ToDouble(D[0]) <= day1 + tMax * oneUnixDay).OrderBy(O => (double)O[0]).Last();
-            dayDiff += Math.Abs((double)teP[0] - (double)tmP[0]) / oneUnixDay;
+            dayDiff += ((double)teP[0] - (double)tmP[0]) / oneUnixDay;
 
             //average?
             dayDiff = dayDiff / 3;

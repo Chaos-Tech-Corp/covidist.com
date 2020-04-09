@@ -143,7 +143,7 @@ namespace covidist.com.Controllers
             {
                 if (string.IsNullOrEmpty(s))
                 {
-                    s = "6.5";
+                    s = "3.5";
                 }
                 var series = new List<time_chart>();
                 var l = _logic.GetLost(country);
@@ -160,7 +160,11 @@ namespace covidist.com.Controllers
 
                 series.Add(l);
 
-                series.Add(_logic.Estimte_Propagation(i, double.Parse(s)));
+                //series.Add(_logic.Estimate_Series(i, 2, 4)[1]);
+                if (i.data.Count > 0) {
+                    series.Add(_logic.Estimte_Propagation(i, double.Parse(s), "series"));
+                    series.Add(_logic.Estimte_Propagation(i, double.Parse(s), "value"));
+                }
                 return new JsonResult(new { series = series, lines = _logic.GetEventLines(country) });
             } else {
                 return new JsonResult(new { series = _logic.GetCountryData(country, type), lines = _logic.GetEventLines(country) });
