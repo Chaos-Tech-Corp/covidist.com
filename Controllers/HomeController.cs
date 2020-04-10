@@ -27,20 +27,32 @@ namespace covidist.com.Controllers
             return View();
         }
 
+        public JsonResult BarData(string filter)
+        {
+            var series = _logic.CasesByMillion(_logic.charts["lost"]);
+            var categories = series.data.Select(S => S[0]).ToList();
+
+            return new JsonResult(new { series = new { name = "", data = series.data.Select(S => S[1]).ToList() }, categories = categories });
+        }
+
         public JsonResult AllData(string field, string range, string adjust)
         {
             if (string.IsNullOrEmpty(field))
             {
                 field = "infected";
             }
-            if (field != "infected" && field != "lost" && field != "active" && field != "pinfected" && field != "plost")
+            if (field != "infected" && field != "lost" && field != "active" && field != "pinfected" && field != "plost" && field != "million")
             {
                 field = "infected";
             }
 
             List<time_chart> data2Use;
 
-            if(field == "active")
+            if (field =="million")
+            {
+                data2Use = new List<time_chart>() { _logic.CasesByMillion(_logic.charts["lost"]) };
+            }
+            else if(field == "active")
             {
                 data2Use = new List<time_chart>();
                 foreach (var item in _logic.charts["infected"])

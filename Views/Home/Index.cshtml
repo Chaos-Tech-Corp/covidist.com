@@ -3,8 +3,8 @@
     List<string> countries = ViewBag.countries;
 }
 
-<div style="position:absolute; top:70px; left:0; right:0; bottom:0; width:100%;">
-    <div id="container" style="width:100%; height:100%; background:#f0f0f0"></div>
+<div style="position:absolute; top:70px; left:0; right:0; bottom:0; width:100%; overflow:hidden">
+    <div id="container" style="width: 100%; height: 100%; background: #f0f0f0; overflow: hidden"></div>
 </div>
 <div class="chart_options">
     <div class="form_element">
@@ -79,6 +79,7 @@
                 <option value="plost">% Lost</option>
 
                 <option value="active">Active Cases</option>
+                <option value="million">Lost per Million Pop.</option>
             </optgroup>
         </select>
     </div>
@@ -151,6 +152,11 @@
                         vSeries[chart.series[i].name] = chart.series[i].visible;
                     }
                 }
+                
+                if (filter == "million") {
+                    return loadBar(filter);
+                }
+
                 $.post('/AllData', { field: filter, range: range, adjust: adjust }, function (result) {
                     if (chart != null) {
                         for (var i = 0; i < result.length; i++) {
@@ -230,7 +236,7 @@
             }
 
             function loadCountry() {
-
+                
                 var filter = $("#bnFilterType").val(),
                     cntry = $("#bnFilterCountry").val(),
                     s = $("#bnTransmissibility").val();
@@ -345,6 +351,66 @@
                 });
             }
 
+            function loadBar(filter) {
+                $.post('/BarData', { filter: filter }, function (result) {
+                    if (chart != null) {
+                        for (var i = 0; i < result.length; i++) {
+                            var vValue = vSeries[result[i].name];
+                            result[i].visible = vValue === undefined ? 'false' : vValue;
+                        }
+                    }
+
+                    chart = Highcharts.chart('container', {
+                        chart: {
+                            type: 'bar',
+                            scrollablePlotArea: {
+                                minHeight: (result.categories.length * 16)
+                            },
+                            marginRight: 32
+                        },
+                        //boost: {
+                        //    enabled: false,
+                        //    usePreallocated: true,
+                        //    useAlpha: false
+                        //},
+                        title: {
+                            text: 'Deaths per Million Population'
+                        },
+                        xAxis: {
+                            categories: result.categories,
+                            title: {
+                                text: 'Country'
+                            }
+                        },
+                        yAxis: {
+                            min: 0,
+                            title: {
+                                text: 'Cases',
+                                align: 'high'
+                            },
+                            labels: {
+                                overflow: 'justify'
+                            }
+                        },
+
+                        legend: {
+                            enabled: false
+                        },
+
+                        plotOptions: {
+                            bar: {
+                                dataLabels: {
+                                    enabled: true
+                                }
+                            }
+                        },
+
+                        series: [result.series],
+
+                        
+                    });
+                });
+            }
 
             $(function () {
 
@@ -425,13 +491,13 @@
                         } else {
                             $("#bnFilterAdjust").closest(".form_element").show();
                         }
-                        $("#bnFilterType").closest(".form_element").hide();
+                        $("#bnFilterType, #bnTransmissibility").closest(".form_element").hide();
                         loadData($("#bnFilterLine").val(), $("#bnFilterDate").val(), $("#bnFilterAdjust").val());
                     } else {
                         $("#bnFilterLine").closest(".form_element").hide();
                         $("#bnFilterDate").closest(".form_element").hide();
                         $("#bnFilterAdjust").closest(".form_element").hide();
-                        $("#bnFilterType").closest(".form_element").show();
+                        $("#bnFilterType, #bnTransmissibility").closest(".form_element").show();
                         loadCountry();
                     }
                 });

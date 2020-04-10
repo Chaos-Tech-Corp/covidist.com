@@ -916,6 +916,28 @@ public class Logic
         return t;
     }
 
+    public time_chart CasesByMillion(List<time_chart> m) {
+
+        var t = new time_chart();
+        t.type = "bar";
+        t.name = "Cases by Million";
+        t.data = new List<List<object>>();
+
+        foreach(var l in m.Where(M => M.population > 0))
+        {
+            var finalValue = Convert.ToDouble(l.data.Last()[1]);
+            var perMillion = Math.Round( finalValue * 1000000 / l.population);
+            if (perMillion > 0)
+            {
+                t.data.Add(new List<object>() { l.name, perMillion });
+            }
+        }
+
+        return t;
+    
+    }
+
+
     double fValue(double aMax, double tMax, double s, int day)
     {
         return aMax * Math.Exp((-1 / (2 * s)) * (Math.Pow(day - tMax, 2) / day));
