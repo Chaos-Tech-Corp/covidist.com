@@ -1,4 +1,6 @@
-﻿<!DOCTYPE html>
+﻿@{
+    Boolean isInfo = ViewBag.isInfo ?? false;
+}<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -23,15 +25,32 @@
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div>
-                <a class="navbar-brand" href="/" style="display:flex">
-                    <img src="~/img/chaos_logo.png" style="max-height:42px" />
-                    <span style="line-height:1; display:block;">COVID-19<br />Distribution</span>
-                </a>
-            </div>
-        </nav>
-    </header>
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3 justify-content-end">
+                <div class="container w-100 mw-100">
+                    <a class="navbar-brand" href="/" style="display:flex">
+                        <img src="~/img/chaos_logo.png" style="max-height:42px" />
+                        <span style="line-height:1; display:block;">COVID-19<br />Distribution</span>
+                    </a>
+                    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                            aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse flex-grow-0">
+                        <ul class="navbar-nav text-right">
+                            <li class="nav-item">
+                                <a class="nav-link text-dark @(!isInfo ? "nav-selected" : "")" href="/desktop">Desktop</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" href="/mobile">Mobile</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark @(isInfo ? "nav-selected" : "")" href="/privacy">Info</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+</header>
 
     @RenderBody()
 

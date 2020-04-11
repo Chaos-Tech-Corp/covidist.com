@@ -33,19 +33,19 @@
                     <img src="~/img/chaos_logo.png" style="max-height:42px" />
                     <span class="d-none d-sm-none d-md-block" style="line-height:1;">COVID-19<br />Distribution</span>
                 </a>
-                    <div class="form_element" style="padding-top:10px;">
-                        <select id="bnFilterCountry" data-live-search="true">
-                            <optgroup label="World" data-max-options="1">
-                                <option value="World" selected="selected">All Countries</option>
-                            </optgroup>
-                            <optgroup label="Countries" data-max-options="2">
-                                @foreach (var c in countries)
-                                {
-                                    <option>@c</option>
-                                }
-                            </optgroup>
-                        </select>
-                    </div>
+                <div class="form_element" style="padding-top:10px;">
+                    <select id="bnFilterCountry" data-live-search="true">
+                        <optgroup label="World" data-max-options="1">
+                            <option value="World" selected="selected">All Countries</option>
+                        </optgroup>
+                        <optgroup label="Countries" data-max-options="2">
+                            @foreach (var c in countries)
+                            {
+                                <option>@c</option>
+                            }
+                        </optgroup>
+                    </select>
+                </div>
             </div>
         </nav>
     </header>

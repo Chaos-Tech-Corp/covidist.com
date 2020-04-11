@@ -49,15 +49,14 @@ html {
 }
 
 .chart_options {
-    border:1px solid #ddd;
-    border-radius:3px;
     position: absolute;
-    top: 7px;
-    left: 174px;
-    right:8px;
-    padding: 4px 8px;
-    background-color:#f0f0f0;
-    display:flex;
+    top: 69px;
+    left: 0;
+    width: 200px;
+    bottom: 0;
+    background: #fff;
+    border-right: 1px solid #ddd;
+    display:flex; flex-direction:column;
 }
 
 .form_element {
@@ -75,13 +74,18 @@ html {
     }
 
 .chart_options > * {
-    margin-right:4px;
+    margin-top:4px;
+    padding:0 0 0 2px;
+}
+
+.nav-selected {
+    border-bottom:1px solid orange;
 }
 
 h5 {
-    border-top:1px solid #ccc;
-    padding-top:16px;
-    margin:32px auto 8px;
+    border-top: 1px solid #ccc;
+    padding-top: 16px;
+    margin: 32px auto 8px;
 }
 
 .lyr-container {
@@ -120,3 +124,24 @@ h5 {
     margin-left:4px;
     display:inline-block;
 }
+
+#lyr-loading {
+    position: absolute;
+    top: 69px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(200,200,200,.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+    #lyr-loading  > div {
+        border: 1px solid #ccc;
+        border-radius: 3px;
+        background: #fff;
+        width: 200px;
+        text-align: center;
+        padding: 24px;
+    }

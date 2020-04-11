@@ -23,8 +23,12 @@ namespace covidist.com.Controllers
 
         public IActionResult Index()
         {
-            ViewBag.countries = _logic.charts["infected"].Select(C => C.name).ToList();
             return View();
+        }
+
+        public JsonResult getCountries()
+        {
+            return new JsonResult(_logic.charts["infected"].Select(C => C.name).ToList());
         }
 
         public JsonResult BarData(string filter)
@@ -269,14 +273,9 @@ namespace covidist.com.Controllers
 
         public IActionResult Privacy()
         {
-            var when = DateTime.Today;
-            string fileName = "c:\\temp\\" + when.ToString("yyyy-MM-dd") + ".csv";
-            while (!System.IO.File.Exists(fileName))
-            {
-                when = when.AddDays(-1);
-                fileName = "c:\\temp\\" + when.ToString("yyyy-MM-dd") + ".csv";
-            }
-            ViewBag.update = System.IO.File.GetLastWriteTime(fileName).ToString("yyyy-MM-dd HH:mm zzz");
+            ViewBag.countries = _logic.charts["infected"].Select(C => C.name).ToList();
+            ViewBag.isInfo = true;
+            ViewBag.update = _logic.GetLastUpdate().ToString("yyyy-MM-dd HH:mm zzz");
             return View();
         }
     }
