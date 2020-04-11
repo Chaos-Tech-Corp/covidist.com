@@ -227,6 +227,10 @@ function loadCountry(lyr, t) {
 $(function () {
     var countryName = $("#bnFilterCountry").val();
 
+    $("#bnFilterCountry").on("change", function () {
+        document.location = '/mobile/' + $(this).val();
+    });
+
     if (countryName == 'World') {
 
         $("#bnFilterAdjust").closest(".form_element").hide();
@@ -265,9 +269,6 @@ $(function () {
 
         $("#bnTransmissibility").val('3.5');
         //$("#bnFilterCountry").val(countryName);
-        $("#bnFilterCountry").on("change", function () {
-            document.location = '/mobile/' + $(this).val();
-        });
         loadCountry('crtTotalCases', 'c');
         loadCountry('crtActiveCases', 'a');
         loadCountry('crtTotalDeath', 'd');
