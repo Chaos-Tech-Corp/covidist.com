@@ -273,7 +273,6 @@ namespace covidist.com.Controllers
 
         public IActionResult Privacy()
         {
-            ViewBag.countries = _logic.charts["infected"].Select(C => C.name).ToList();
             ViewBag.isInfo = true;
             ViewBag.update = _logic.GetLastUpdate().ToString("yyyy-MM-dd HH:mm zzz");
             return View();
