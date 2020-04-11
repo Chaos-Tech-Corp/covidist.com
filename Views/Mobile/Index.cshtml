@@ -1,0 +1,229 @@
+﻿@{
+    Layout = null;
+    var countryName = ViewBag.countryName;
+    List<string> countries = ViewBag.countries;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>COVID-19 Distribution</title>
+    <meta name="description" content="COVID-19 worldwide distrubution charts, ranges and country details." />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.9/css/bootstrap-select.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+    <link rel="icon" href="/img/cropped-Icon_TransparentBg_1024x1024_72dpi-1-32x32.png" sizes="32x32" />
+    <link rel="icon" href="/img/cropped-Icon_TransparentBg_1024x1024_72dpi-1-192x192.png" sizes="192x192" />
+    <link rel="apple-touch-icon-precomposed" href="/img/cropped-Icon_TransparentBg_1024x1024_72dpi-1-180x180.png" />
+    <meta name="msapplication-TileImage" content="/img/cropped-Icon_TransparentBg_1024x1024_72dpi-1-270x270.png" />
+    <meta property="og:title" content="COVID-19 Distribution" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://covidist.com" />
+    <meta property="og:description" content="COVID-19 worldwide distrubution charts, ranges and country details." />
+    <meta property="og:image" content="https://covidist.com/img/covidist.png" />
+    <meta property="og:site_name" content="COVID-19 Distribution" />
+    <meta property="og:locale" content="en_US" />
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-light bg-white border-bottom box-shadow mb-3">
+            <div class="container">
+                <a class="navbar-brand" href="/" style="display:flex">
+                    <img src="~/img/chaos_logo.png" style="max-height:42px" />
+                    <span style="line-height:1; display:block;">COVID-19<br />Distribution</span>
+                </a>
+                <div>
+                    <div class="form_element">
+                        <select id="bnFilterCountry" data-live-search="true">
+                            <optgroup label="World" data-max-options="1">
+                                <option value="World" selected="selected">All Countries</option>
+                            </optgroup>
+                            <optgroup label="Countries" data-max-options="2">
+                                @foreach (var c in countries)
+                                {
+                                    <option>@c</option>
+                                }
+                            </optgroup>
+                        </select>
+                    </div>
+                </div>
+
+            </div>
+        </nav>
+    </header>
+
+    <div class="container top-nav">
+        <a href="/privacy">Info</a>
+        |<a href="/desktop/#@countryName">Desktop Version</a>
+    </div>
+    <div class="container">
+
+        @if (string.IsNullOrEmpty(countryName) || countryName == "World")
+        {
+            <h2>All World Countries</h2>
+
+            <section>
+                <h5>Total Cases</h5>
+                <div class="section-options">
+                    <div class="form_element">
+                        <label>Scale Type</label>
+                        <select class="scale-type" data-width="fit" id="bnFilterScale">
+                            <optgroup label="Scale Type">
+                                <option value="linear">Linear</option>
+                                <option value="logarithmic">Logarithmic</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                    <div class="form_element" data-toggle="tooltip" data-placement="bottom" title="Date Type">
+                        <label>Data Type</label>
+                        <select id="bnFilterDate" data-width="fit">
+                            <optgroup label="Date Type">
+                                <option value="date">Calendar</option>
+                                <option value="pandemic">Pandemic</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                    <div class="form_element">
+                        <label>Case Adjust</label>
+                        <select id="bnFilterAdjust" data-width="fit">
+                            <optgroup label="Case Adjust">
+                                <option>1</option>
+                                <option>10</option>
+                                <option>50</option>
+                                <option selected>100</option>
+                                <option>500</option>
+                                <option>1000</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                </div>
+                <div id="lyrWorld" class="chart-container"></div>
+            </section>
+
+            <section>
+                <h5>Death by Million Pop</h5>
+                <div id="lyrDeathMillion" class="chart-container"></div>
+            </section>
+
+        }
+        else
+        {
+
+            <h2>@countryName</h2>
+
+            <section>
+                <h5>Total Cases</h5>
+                <div class="section-options">
+                    <div class="form_element">
+                        <label>Scale Type</label>
+                        <select class="scale-type">
+                            <optgroup label="Scale Type">
+                                <option value="linear">Linear</option>
+                                <option value="logarithmic">Logarithmic</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                </div>
+                <div id="crtTotalCases" class="chart-container"></div>
+            </section>
+
+            <section>
+                <h5>Active Cases</h5>
+                <div class="section-options">
+                    <div class="form_element">
+                        <label>Scale Type</label>
+                        <select class="scale-type">
+                            <optgroup label="Scale Type">
+                                <option value="linear">Linear</option>
+                                <option value="logarithmic">Logarithmic</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                </div>
+                <div id="crtActiveCases" class="chart-container"></div>
+            </section>
+
+            <section>
+                <h5>Total Deaths</h5>
+                <div class="section-options">
+                    <div class="form_element">
+                        <label>Scale Type</label>
+                        <select class="scale-type">
+                            <optgroup label="Scale Type">
+                                <option value="linear">Linear</option>
+                                <option value="logarithmic">Logarithmic</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                </div>
+                <div id="crtTotalDeath" class="chart-container"></div>
+            </section>
+
+            <section>
+                <h5>Infection Evolution</h5>
+                <div class="section-options">
+                    <div class="form_element">
+                        <label>Scale Type</label>
+                        <select class="scale-type">
+                            <optgroup label="Scale Type">
+                                <option value="linear">Linear</option>
+                                <option value="logarithmic">Logarithmic</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                </div>
+                <div id="crtLinearEstimation" class="chart-container"></div>
+            </section>
+
+            <section>
+                <h5>Infection Estimate</h5>
+                <div class="section-options">
+                    <div class="form_element">
+                        <label>Scale Type</label>
+                        <select class="scale-type">
+                            <optgroup label="Scale Type">
+                                <option value="linear">Linear</option>
+                                <option value="logarithmic">Logarithmic</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                    <div class="form_element">
+                        <label>Transmissibility</label>
+                        <select id="bnTransmissibility">
+                            <optgroup label="Transmissibility">
+                                @for (var i = 1.0; i <= 10; i += 0.5)
+                                {
+                                    <option>@i.ToString("0.0")</option>
+                                }
+                            </optgroup>
+                        </select>
+                    </div>
+                </div>
+                <div id="crtEstimation" class="chart-container"></div>
+            </section>
+
+        }
+        <section>
+            <h5>Details</h5>
+            <p>Last Update: @ViewBag.update</p>
+        </section>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.9/js/bootstrap-select.min.js"></script>
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-149746338-3"></script>
+    <script>window.dataLayer = window.dataLayer || []; function gtag() { dataLayer.push(arguments); } gtag('js', new Date()); gtag('config', 'UA-149746338-3');</script>
+    <script src="~/lib/hc/highcharts.js"></script>
+    <script src="~/lib/hc/highcharts-more.js"></script>
+    <script>
+        $(function () {
+            $("#bnFilterCountry").val('@countryName');
+        });
+    </script>
+    <script src="~/js/site.js"></script>
+</body>
+</html>

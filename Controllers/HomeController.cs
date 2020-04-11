@@ -183,6 +183,76 @@ namespace covidist.com.Controllers
             }
         }
 
+        public JsonResult mobile_CountryData(string country, string type, string s)
+        {
+            if (type == "c")
+            {
+                var i = _logic.GetInfected(country);
+                i.marker = new { enabled = false };
+                i.name = "Total Cases";
+                var n = _logic.CasesByDay(i);
+                n.name = "Daily New Cases";
+                return new JsonResult(new { series = new List<time_chart>() { n, i }, lines = _logic.GetEventLines(country) });
+            }
+            else if (type == "a")
+            {
+                var i = _logic.GetCountryDataActiveOnly(country);
+                i.marker = new { enabled = false };
+                i.name = "Active Cases";
+                return new JsonResult(new { series = new List<time_chart>() { i }, lines = _logic.GetEventLines(country) });
+            }
+            else if (type == "d")
+            {
+                var i = _logic.GetLost(country);
+                i.marker = new { enabled = false };
+                i.name = "Total Cases";
+                var n = _logic.CasesByDay(i);
+                n.name = "Daily New Cases";
+                return new JsonResult(new { series = new List<time_chart>() { n, i }, lines = _logic.GetEventLines(country) });
+            }
+            else if (type == "l")
+            {
+                //infected
+                var i = _logic.GetInfected(country);
+                //case multiplier data
+                var m = _logic.CaseMultiplier(i);
+                m.type = "column";
+                m.yAxis = 0;
+                m.name = "Multiplier by 4 days";
+                
+
+                List<time_chart> c = new List<time_chart>();
+                c.Add(m);
+
+                return new JsonResult(new { series = c, lines = _logic.GetEventLines(country), yLines = new List<plotLine>() {
+                    new plotLine() { width = 1, value = 1, label = new label() { text ="No more new cases" } }
+                } });
+            }
+            else if (type == "e")
+            {
+                if (string.IsNullOrEmpty(s))
+                {
+                    s = "3.5";
+                }
+                var series = new List<time_chart>();
+
+                var i = _logic.GetCountryDataActiveOnly(country); //_logic.GetInfected(country);
+                i.name = "Active Cases";
+                i.marker = new { enabled = false };
+                series.Add(i);
+
+                //series.Add(_logic.Estimate_Series(i, 2, 4)[1]);
+                if (i.data.Count > 0)
+                {
+                    series.Add(_logic.Estimte_Propagation(i, double.Parse(s), "series"));
+                    series.Add(_logic.Estimte_Propagation(i, double.Parse(s), "value"));
+                }
+                return new JsonResult(new { series = series, lines = new List<object>() });
+            }
+
+            return null;
+        }
+
         public JsonResult CountryDataActiveOnly(string country)
         {
             var active = _logic.GetCountryDataActiveOnly(country);
@@ -203,7 +273,7 @@ namespace covidist.com.Controllers
             string fileName = "c:\\temp\\" + when.ToString("yyyy-MM-dd") + ".csv";
             while (!System.IO.File.Exists(fileName))
             {
-                when.AddDays(-1);
+                when = when.AddDays(-1);
                 fileName = "c:\\temp\\" + when.ToString("yyyy-MM-dd") + ".csv";
             }
             ViewBag.update = System.IO.File.GetLastWriteTime(fileName).ToString("yyyy-MM-dd HH:mm zzz");

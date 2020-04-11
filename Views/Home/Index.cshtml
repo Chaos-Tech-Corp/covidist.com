@@ -144,7 +144,8 @@
         <script>
             var chart = null,
                 vSeries = [],
-                _hash = null;
+                _hash = null,
+                _isDesktop = window.location.href.toLowerCase().indexOf('desktop')>0;
 
             function loadData(filter, range, adjust) {
                 if (chart != null) {
@@ -412,7 +413,19 @@
                 });
             }
 
+            function isMobile() {
+                try {
+                    document.createEvent("TouchEvent"); return screen.width < 1024;
+                } catch (e) { return false;}
+            }
+
+            if (isMobile() && !_isDesktop) {
+                var hash = (window.location.hash != null && window.location.hash != '') ? '/' + window.location.hash.substring(1) : '';
+                document.location = '/mobile' + hash;
+            }
+
             $(function () {
+
 
                 $("#bnFilterAdjust").closest(".form_element").hide();
                 $("#bnFilterType").closest(".form_element").hide();

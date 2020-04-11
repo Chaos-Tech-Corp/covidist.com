@@ -59,6 +59,16 @@ namespace covidist.com
                     name: "default",
                     pattern: "{action=Index}/{id?}",
                     defaults: new { controller = "Home", action = "Index" });
+
+                endpoints.MapControllerRoute(
+                    name: "mobile",
+                    pattern: "mobile/{id?}",
+                    defaults: new { controller = "Mobile", action = "Index" });
+
+                endpoints.MapControllerRoute(
+                   name: "desktop",
+                   pattern: "desktop/{id?}",
+                   defaults: new { controller = "Home", action = "Index" });
             });
         }
     }
