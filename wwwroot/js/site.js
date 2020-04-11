@@ -1,4 +1,4 @@
-﻿var _charts = {};
+﻿var _charts = {}, _countryName = 'World';
 
 function loadData(filter, range, adjust) {
     $.post('/AllData', { field: filter, range: range, adjust: adjust }, function (result) {
@@ -127,7 +127,7 @@ function loadBar(filter) {
 }
 
 function loadCountry(lyr, t) {
-    $.post('/mobile_CountryData', { country: '@countryName', type: t, s: $("#bnTransmissibility").val() }, function (result) {
+    $.post('/mobile_CountryData', { country: _countryName, type: t, s: $("#bnTransmissibility").val() }, function (result) {
         //check if the series contains an estimate
         var plotBands = [],
             has2Axis = false,
@@ -225,13 +225,13 @@ function loadCountry(lyr, t) {
 }
 
 $(function () {
-    var countryName = $("#bnFilterCountry").val();
+    _countryName = $("#bnFilterCountry").val();
 
     $("#bnFilterCountry").on("change", function () {
         document.location = '/mobile/' + $(this).val();
     });
 
-    if (countryName == 'World') {
+    if (_countryName == 'World') {
 
         $("#bnFilterAdjust").closest(".form_element").hide();
         
@@ -268,7 +268,6 @@ $(function () {
     } else {
 
         $("#bnTransmissibility").val('3.5');
-        //$("#bnFilterCountry").val(countryName);
         loadCountry('crtTotalCases', 'c');
         loadCountry('crtActiveCases', 'a');
         loadCountry('crtTotalDeath', 'd');
