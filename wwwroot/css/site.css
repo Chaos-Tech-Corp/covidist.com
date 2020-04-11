@@ -84,6 +84,15 @@ h5 {
     margin:32px auto 8px;
 }
 
+.lyr-container {
+    width: 99%;
+    padding-right: 15px;
+    padding-left: 15px;
+    margin-right: auto;
+    margin-left: auto;
+    max-width:1000px;
+}
+
 .chart-container {
     width: 100%;
     height: 500px;

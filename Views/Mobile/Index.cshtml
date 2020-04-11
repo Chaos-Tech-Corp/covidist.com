@@ -28,13 +28,12 @@
 <body>
     <header>
         <nav class="navbar navbar-expand-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container">
-                <a class="navbar-brand" href="/" style="display:flex">
+            <div class="lyr-container d-flex justify-content-between">
+                <a class="navbar-brand" href="/" style="display:flex; ">
                     <img src="~/img/chaos_logo.png" style="max-height:42px" />
-                    <span style="line-height:1; display:block;">COVID-19<br />Distribution</span>
+                    <span class="d-none d-sm-none d-md-block" style="line-height:1;">COVID-19<br />Distribution</span>
                 </a>
-                <div>
-                    <div class="form_element">
+                    <div class="form_element" style="padding-top:10px;">
                         <select id="bnFilterCountry" data-live-search="true">
                             <optgroup label="World" data-max-options="1">
                                 <option value="World" selected="selected">All Countries</option>
@@ -47,17 +46,15 @@
                             </optgroup>
                         </select>
                     </div>
-                </div>
-
             </div>
         </nav>
     </header>
 
-    <div class="container top-nav">
+    <div class="lyr-container top-nav">
         <a href="/privacy">Info</a>
         |<a href="/desktop/#@countryName">Desktop Version</a>
     </div>
-    <div class="container">
+    <div class="lyr-container">
 
         @if (string.IsNullOrEmpty(countryName) || countryName == "World")
         {
