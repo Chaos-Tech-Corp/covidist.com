@@ -11,14 +11,12 @@ using Newtonsoft.Json;
 
 namespace covidist.com.Controllers
 {
-    public class HomeController : Controller
+    public class HomeController : BaseController
     {
-
-        private static Logic _logic = new Logic();
 
         public HomeController()
         {
-            _logic.Initialize();
+
         }
 
         public IActionResult Index()

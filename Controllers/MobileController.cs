@@ -6,9 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace covidist.com.Controllers
 {
-    public class MobileController : Controller
+    public class MobileController : BaseController
     {
-        private static Logic _logic = new Logic();
 
         public IActionResult Index(string id)
         {

@@ -84,7 +84,7 @@ public class Logic
     {
         lock (_charts)
         {
-            //refresh every hour
+            //refresh every 2 hour aprox
             if (_charts.Count == 0 || _lastCheck < DateTime.Now.AddHours(-2))
             {
 #if !DEBUG
