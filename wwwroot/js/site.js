@@ -163,7 +163,7 @@ function loadCountry(lyr, t) {
         };
         yAxis1 = {
             title: {
-                text: 'Daily Cases'
+                text: t =='m' ? '' : 'Daily Cases'
             }, min: 0,
             labels: {
                 style: {
@@ -282,6 +282,7 @@ $(function () {
         loadCountry('crtTotalDeath', 'd');
         loadCountry('crtEstimation', 'e');
         loadCountry('crtLinearEstimation', 'l');
+        loadCountry('crtMobility', 'm');
 
         $(".scale-type").on("change", function () {
             var t = $(this),

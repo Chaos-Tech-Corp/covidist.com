@@ -203,7 +203,23 @@ namespace covidist.com.Controllers
                     series.Add(_logic.Estimte_Propagation(i, double.Parse(s), "value"));
                 }
                 return new JsonResult(new { series = series, lines = _logic.GetEventLines(country) });
-            } else {
+            }
+            else if(type == "m")
+            {
+                return new JsonResult(new { series = _logic.GetMobility(country), lines = _logic.GetEventLines(country) });
+            }
+            else if (type == "y")
+            {
+                var series = _logic.GetMobility(country).ToList();
+                var active = _logic.GetInfected(country);
+                active.yAxis = 1;
+                active.marker = new { enabled = false };
+                active.name = "Total Infected";
+                series.Add(active);
+
+                return new JsonResult(new { series = series, lines = _logic.GetEventLines(country) });
+            }
+            else {
                 return new JsonResult(new { series = _logic.GetCountryData(country, type), lines = _logic.GetEventLines(country) });
             }
         }
@@ -234,6 +250,10 @@ namespace covidist.com.Controllers
                 var n = _logic.CasesByDay(i);
                 n.name = "Daily New Cases";
                 return new JsonResult(new { series = new List<time_chart>() { n, i }, lines = _logic.GetEventLines(country) });
+            }
+            else if (type == "m")
+            {
+                return new JsonResult(new { series = _logic.GetMobility(country), lines = _logic.GetEventLines(country) });
             }
             else if (type == "l")
             {
@@ -277,6 +297,8 @@ namespace covidist.com.Controllers
 
             return null;
         }
+
+        
 
         public JsonResult CountryDataActiveOnly(string country)
         {

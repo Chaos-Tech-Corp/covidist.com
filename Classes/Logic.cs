@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 
@@ -52,8 +53,9 @@ public class Logic
             {"United Kingdom","United_Kingdom" },
             {"Tanzania","United_Republic_of_Tanzania" }
         };
-
+    private Dictionary<string, string> _countryCodes = new Dictionary<string, string>();
     private Dictionary<string, List<time_chart>> _charts = new Dictionary<string, List<time_chart>>();
+    private Dictionary<string, List<time_chart>> _mobility = new Dictionary<string, List<time_chart>>();
     private DateTime _lastCheck = DateTime.MinValue;
     private Dictionary<string, Dictionary<DateTime, int>> _recoveries;
     private List<time_event> _events;
@@ -96,6 +98,7 @@ public class Logic
                 _charts.Add("lost", readAllData("lost"));
                 _recoveries = readRecoveries();
                 _events = GetEvents();
+                _mobility = readMovilityData();
                 _lastCheck = DateTime.Now;
             }
         }
@@ -113,6 +116,42 @@ public class Logic
         url = "https://data.humdata.org/hxlproxy/data/download/time_series_covid19_recovered_global_narrow.csv?dest=data_edit&filter01=explode&explode-header-att01=date&explode-value-att01=value&filter02=rename&rename-oldtag02=%23affected%2Bdate&rename-newtag02=%23date&rename-header02=Date&filter03=rename&rename-oldtag03=%23affected%2Bvalue&rename-newtag03=%23affected%2Binfected%2Bvalue%2Bnum&rename-header03=Value&filter04=clean&clean-date-tags04=%23date&filter05=sort&sort-tags05=%23date&sort-reverse05=on&filter06=sort&sort-tags06=%23country%2Bname%2C%23adm1%2Bname&tagger-match-all=on&tagger-default-tag=%23affected%2Blabel&tagger-01-header=province%2Fstate&tagger-01-tag=%23adm1%2Bname&tagger-02-header=country%2Fregion&tagger-02-tag=%23country%2Bname&tagger-03-header=lat&tagger-03-tag=%23geo%2Blat&tagger-04-header=long&tagger-04-tag=%23geo%2Blon&header-row=1&url=https%3A%2F%2Fraw.githubusercontent.com%2FCSSEGISandData%2FCOVID-19%2Fmaster%2Fcsse_covid_19_data%2Fcsse_covid_19_time_series%2Ftime_series_covid19_recovered_global.csv";
         data = net.DownloadData(url);
         System.IO.File.WriteAllBytes("c:\\temp\\recover-" + DateTime.Today.ToString("yyyy-MM-dd") + ".csv", data);
+        //mobility report
+        //https://pastelsky.github.io/covid-19-mobility-tracker/output/<ISO-COUNTRY-CODE>/mobility-<social-place>.csv
+        //do it only once a day
+        if (!System.IO.File.Exists("c:\\temp\\mobility-" + DateTime.Today.ToString("yyyy-MM-dd") + ".csv"))
+        {
+            Dictionary<string, string> countries = new Dictionary<string, string>();
+            List<string> places = new List<string>() { "residential", "parks", "retail-and-recreation", "transit-stations", "workplaces", "grocery-and-pharmacy" };
+            StringBuilder fileContent = new StringBuilder();
+            foreach (var line in GetFile().Skip(1))
+            {
+                if (!countries.ContainsKey(line[7]))
+                {
+                    countries.Add(line[7], line[7]);
+                    try
+                    {
+                        foreach (var place in places)
+                        {
+                            //download the country data
+                            url = "https://pastelsky.github.io/covid-19-mobility-tracker/output/" + line[7] + "/mobility-" + place + ".csv";
+
+                            data = net.DownloadData(url);
+                            var texto = Encoding.Default.GetString(data).Replace("date,value", "").Replace("\"", "").Trim().Split('\r');
+                            foreach (var l in texto)
+                            {
+                                fileContent.Append(Environment.NewLine + line[7] + "," + place + "," + l.Trim());
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        //error downloading a country, skip it
+                    }
+                }
+            }
+            System.IO.File.AppendAllText("c:\\temp\\mobility-" + DateTime.Today.ToString("yyyy-MM-dd") + ".csv", fileContent.ToString());
+        }
         _lastUpdate = GetLastUpdate();
     }
 
@@ -124,6 +163,18 @@ public class Logic
         {
             when = when.AddDays(-1);
             fileName = "c:\\temp\\" + when.ToString("yyyy-MM-dd") + ".csv";
+        }
+        return Extensions.SplitCSV(fileName);
+    }
+
+    public List<string[]> GetMobilityFile()
+    {
+        DateTime when = DateTime.Today;
+        string fileName = "c:\\temp\\mobility-" + when.ToString("yyyy-MM-dd") + ".csv";
+        while (!System.IO.File.Exists(fileName))
+        {
+            when = when.AddDays(-1);
+            fileName = "c:\\temp\\mobility-" + when.ToString("yyyy-MM-dd") + ".csv";
         }
         return Extensions.SplitCSV(fileName);
     }
@@ -172,12 +223,11 @@ public class Logic
         return lines;
     }
 
-
     private List<time_chart> readAllData(string field)
     {
         int lineIx = 0;
         var charts = new List<time_chart>();
-        Dictionary<string, string> countries = new Dictionary<string, string>();
+        _countryCodes = new Dictionary<string, string>();
         var fileLines = GetFile();
         foreach (string[] values in fileLines)
         {
@@ -187,9 +237,9 @@ public class Logic
             {
                 continue;
             }
-            if (!countries.ContainsKey(values[6]))
+            if (!_countryCodes.ContainsKey(values[7]))
             {
-                countries.Add(values[6], values[6]);
+                _countryCodes.Add(values[7],values[6]);
                 charts.Add(new time_chart() { name = values[6], population = double.Parse("0" + values[9]), yAxis = 0, type = "spline", data = new List<List<object>>() });
             }
         }
@@ -248,6 +298,56 @@ public class Logic
         {
             charts.RemoveAt(ix);
         }
+        return charts;
+    }
+
+    private Dictionary<string, List<time_chart>> readMovilityData()
+    {
+        var charts = new Dictionary<string, List<time_chart>>();
+        var fileLines = GetMobilityFile();
+        foreach (string[] values in fileLines)
+        {
+            if (_countryCodes.ContainsKey(values[0]))
+            {
+                var countryName = _countryCodes[values[0]];
+                if (!charts.ContainsKey(countryName))
+                {
+                    charts.Add(countryName, new List<time_chart>() { new time_chart() { name = values[1], marker = new { enabled = false } , yAxis = 0, type = "spline", data = new List<List<object>>() } });
+                }
+                else
+                {
+                    if (!charts[countryName].Any(A => A.name == values[1]))
+                    {
+                        charts[countryName].Add(new time_chart() { name = values[1], marker = new { enabled = false }, yAxis = 0, type = "spline", data = new List<List<object>>() });
+                    }
+                }
+            }
+        }
+
+        DateTime triggerDate = new DateTime(2020, 1, 20);
+        foreach (string[] values in fileLines)
+        {
+            DateTime when = DateTime.ParseExact(values[2], new string[] { "yyyy-MM-dd", "dd/MM/yyyy", "dd-MM-yyyy" }, CultureInfo.InvariantCulture);
+            int value = int.Parse(values[3]);
+            string country = values[0];
+            if (_countryCodes.ContainsKey(country))
+            {
+                country = _countryCodes[country];
+            }
+            else
+            {
+                continue;
+            }
+
+            if (when < triggerDate) continue;
+
+            double unixTimestamp = (when.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
+            unixTimestamp = unixTimestamp * 1000;
+
+            var who = charts[country].First(F => F.name == values[1]);
+            who.data.Add(new List<object>() { unixTimestamp, value });
+        }
+
         return charts;
     }
 
@@ -569,7 +669,7 @@ public class Logic
     public time_chart GetCountryDataActiveOnly(string country)
     {
         var i = new time_chart();
-        i.name = "Infected";
+        i.name = "Active Cases";
         i.type = "spline";
         i.yAxis = 0;
         i.data = new List<List<object>>();
@@ -939,6 +1039,27 @@ public class Logic
     
     }
 
+    public List<time_chart> GetMobility(string country)
+    {
+        if (_mobility.ContainsKey(country))
+        {
+            return _mobility[country];
+        }
+        else
+        {
+            return new List<time_chart>() { new time_chart() { name = "No data available", type = "spline", yAxis = 0 } };
+        }
+    }
+
+    public time_chart GetMobility(string country, string type)
+    {
+        if (_mobility.ContainsKey(country)) {
+            return _mobility[country].First(T => T.name == type);
+        } else
+        {
+            return new time_chart() { name = "No data available", type="spline", yAxis=0 };
+        }
+    }
 
     double fValue(double aMax, double tMax, double s, int day)
     {

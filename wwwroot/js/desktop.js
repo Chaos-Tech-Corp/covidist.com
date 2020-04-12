@@ -137,23 +137,25 @@ function loadCountry() {
         };
         yAxis1 = {
             title: {
-                text: 'Multiplier by 4 days'
+                text: null
             }, min: 0,
             labels: {
                 style: {
                     color: Highcharts.getOptions().colors[0]
                 }
             },
-            opposite: true,
-            plotLines: [{
+            opposite: true
+        };
+        if (filter == 'c') {
+            yAxis1.plotLines = [{
                 color: Highcharts.getOptions().colors[0],
                 width: 1,
                 value: 1,
                 label: {
                     text: 'No more new cases'
                 }
-            }]
-        };
+            }];
+        }
         yAxisConfig.push(yAxis0);
         if (has2Axis) {
             yAxisConfig.push(yAxis1);
