@@ -64,6 +64,16 @@
                 <h5>Total Cases</h5>
                 <div class="section-options">
                     <div class="form_element">
+                        <label>Chart Data</label>
+                        <select data-width="fit" id="bnFilterLine">
+                            <optgroup label="Chart Data">
+                                <option value="infected">Infected</option>
+                                <option value="active">Active</option>
+                                <option value="lost">Death</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                    <div class="form_element">
                         <label>Scale Type</label>
                         <select class="scale-type" data-width="fit" id="bnFilterScale">
                             <optgroup label="Scale Type">
@@ -72,7 +82,7 @@
                             </optgroup>
                         </select>
                     </div>
-                    <div class="form_element" data-toggle="tooltip" data-placement="bottom" title="Date Type">
+                    <div class="form_element">
                         <label>Data Type</label>
                         <select id="bnFilterDate" data-width="fit">
                             <optgroup label="Date Type">
@@ -99,7 +109,27 @@
             </section>
 
             <section>
-                <h5>Death by Million Pop</h5>
+                <h5>Deaths per Million Population</h5>
+                <div class="section-options">
+                    <div class="form_element">
+                        <label>Sort Field</label>
+                        <select class="scale-type" data-width="fit" id="bnSortField">
+                            <optgroup label="Sort Field">
+                                <option value="country">Country</option>
+                                <option value="value">Value</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                    <div class="form_element">
+                        <label>Sort Direction</label>
+                        <select id="bnSortDirection" data-width="fit">
+                            <optgroup label="Sort Direction">
+                                <option value="asc">Asc</option>
+                                <option value="desc">Desc</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                </div>
                 <div id="lyrDeathMillion" class="chart-container"></div>
             </section>
 
@@ -205,6 +235,12 @@
             <h5>Details</h5>
             <p>Last Update: @ViewBag.update</p>
         </section>
+    </div>
+
+    <div id="lyr-loading">
+        <div>
+            Loading...
+        </div>
     </div>
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>

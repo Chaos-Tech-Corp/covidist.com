@@ -9,6 +9,12 @@ namespace covidist.com.Controllers
     public class MobileController : BaseController
     {
 
+        public MobileController()
+        {
+            //refresh data?
+            _logic.Initialize();
+        }
+
         public IActionResult Index(string id)
         {
             if (string.IsNullOrEmpty(id))

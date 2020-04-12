@@ -16,7 +16,8 @@ namespace covidist.com.Controllers
 
         public HomeController()
         {
-
+            //refresh data?
+            _logic.Initialize();
         }
 
         public IActionResult Index()
@@ -29,9 +30,31 @@ namespace covidist.com.Controllers
             return new JsonResult(_logic.charts["infected"].Select(C => C.name).ToList());
         }
 
-        public JsonResult BarData(string filter)
+        public JsonResult BarData(string filter, string sort, string dir)
         {
+            if (string.IsNullOrEmpty(dir) || (dir != "asc" && dir != "desc"))
+            {
+                dir = "ASC";
+            }
+            if (string.IsNullOrEmpty(sort) || (sort != "country" && sort != "value"))
+            {
+                sort = "country";
+            }
             var series = _logic.CasesByMillion(_logic.charts["lost"]);
+            var sortIndex = 0;
+            if (sort == "value")
+            {
+                sortIndex = 1;
+            }
+            if (dir == "asc")
+            {
+                series.data = series.data.OrderBy(O => O[sortIndex]).ToList();
+            }
+            else
+            {
+                series.data = series.data.OrderByDescending(O => O[sortIndex]).ToList();
+            }
+
             var categories = series.data.Select(S => S[0]).ToList();
 
             return new JsonResult(new { series = new { name = "", data = series.data.Select(S => S[1]).ToList() }, categories = categories });

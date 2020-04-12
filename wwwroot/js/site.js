@@ -1,6 +1,7 @@
 ﻿var _charts = {}, _countryName = 'World';
 
 function loadData(filter, range, adjust) {
+    $("#lyr-loading").show();
     $.post('/AllData', { field: filter, range: range, adjust: adjust }, function (result) {
         _charts['lyrWorld'] = Highcharts.chart('lyrWorld', {
             chart: {
@@ -12,7 +13,7 @@ function loadData(filter, range, adjust) {
             //    useAlpha: false
             //},
             title: {
-                text: 'COVID-19 Distribution'
+                text: null
             },
             xAxis: {
                 type: range == 'pandemic' ? 'linear' : 'datetime',
@@ -69,11 +70,13 @@ function loadData(filter, range, adjust) {
             }
 
         });
+        $("#lyr-loading").fadeOut();
     });
 }
 
-function loadBar(filter) {
-    $.post('/BarData', { filter: filter }, function (result) {
+function loadBar(filter, sort, dir) {
+    $("#lyr-loading").show();
+    $.post('/BarData', { filter: filter, sort: sort, dir:dir }, function (result) {
         _charts['lyrDeathMillion'] = Highcharts.chart('lyrDeathMillion', {
             chart: {
                 type: 'bar',
@@ -88,7 +91,7 @@ function loadBar(filter) {
             //    useAlpha: false
             //},
             title: {
-                text: 'Deaths per Million Population'
+                text: null// 'Deaths per Million Population'
             },
             xAxis: {
                 categories: result.categories,
@@ -123,10 +126,12 @@ function loadBar(filter) {
 
 
         });
+        $("#lyr-loading").fadeOut();
     });
 }
 
 function loadCountry(lyr, t) {
+    $("#lyr-loading").show();
     $.post('/mobile_CountryData', { country: _countryName, type: t, s: $("#bnTransmissibility").val() }, function (result) {
         //check if the series contains an estimate
         var plotBands = [],
@@ -220,7 +225,7 @@ function loadCountry(lyr, t) {
             }
 
         });
-
+        $("#lyr-loading").fadeOut();
     });
 }
 
@@ -245,7 +250,7 @@ $(function () {
             loadData($("#bnFilterLine").val(), val, $("#bnFilterAdjust").val());
         });
 
-        $("#bnFilterAdjust").on("change", function () {
+        $("#bnFilterAdjust, #bnFilterLine").on("change", function () {
             loadData($("#bnFilterLine").val(), $("#bnFilterDate").val(), $("#bnFilterAdjust").val());
         });
 
@@ -260,6 +265,10 @@ $(function () {
                     type: t.val()
                 }]
             })
+        });
+
+        $("#bnSortField,#bnSortDirection").on("change", function () {
+            loadBar('million', $("#bnSortField").val(), $("#bnSortDirection").val());
         });
 
         loadData($("#bnFilterLine").val(), $("#bnFilterDate").val(), $("#bnFilterAdjust").val());
