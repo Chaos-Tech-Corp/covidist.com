@@ -169,11 +169,17 @@ namespace covidist.com.Controllers
             if (type == "a")
             {
                 var lDay = _logic.CasesByDay(_logic.GetLost(country));
-                lDay.yAxis = 0;
+                lDay.yAxis = 1;
+                var iDay = _logic.CasesByDay(_logic.GetInfected(country));
+                iDay.yAxis = 1;
+                var rDay = _logic.CasesByDay(_logic.GetRecovered(country));
+                rDay.yAxis = 1;
                 var active = _logic.GetCountryDataActiveOnly(country);
                 return new JsonResult(new { series = new List<time_chart>() { 
-                    active,
-                    lDay
+                    iDay,
+                    rDay,
+                    lDay,
+                    active
                 }, lines = _logic.GetEventLines(country) });
             }
             else if (type == "e")
@@ -208,7 +214,7 @@ namespace covidist.com.Controllers
             {
                 return new JsonResult(new { series = _logic.GetMobility(country), lines = _logic.GetEventLines(country) });
             }
-            else if (type == "y")
+            else if (type == "yt")
             {
                 var series = _logic.GetMobility(country).ToList();
                 var active = _logic.GetInfected(country);
@@ -216,6 +222,17 @@ namespace covidist.com.Controllers
                 active.marker = new { enabled = false };
                 active.name = "Total Infected";
                 series.Add(active);
+
+                return new JsonResult(new { series = series, lines = _logic.GetEventLines(country) });
+            }
+            else if (type == "yd")
+            {
+                var series = _logic.GetMobility(country).ToList();
+                var active = _logic.CasesByDay(_logic.GetInfected(country));
+                active.yAxis = 1;
+                active.marker = new { enabled = false };
+                active.name = "Daily New Infected";
+                series.Insert(0,active);
 
                 return new JsonResult(new { series = series, lines = _logic.GetEventLines(country) });
             }

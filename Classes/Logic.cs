@@ -678,18 +678,31 @@ public class Logic
         {
             var recoveries = _recoveries[country];
             Dictionary<double, int> recUnix = new Dictionary<double, int>();
+            Dictionary<double, int> lostUnix = new Dictionary<double, int>();
             foreach (var e in recoveries)
             {
                 recUnix.Add(e.Key.ToUnixTime(), e.Value);
+            }
+            foreach(var l in charts["lost"].First(I => I.name == country).data)
+            {
+                lostUnix.Add((double)l[0], (int)l[1]);
             }
             foreach (var e in charts["infected"].First(I => I.name == country).data)
             {
                 //filter to start only when there are cases
                 if ((int)e[1] > 0)
                 {
+                    int recValue = 0;
+                    int lostValue = 0;
                     if (recUnix.ContainsKey((double)e[0]))
                     {
-                        i.data.Add(new List<object>() { e[0], (int)e[1] - recUnix[(double)e[0]] });
+                        recValue = recUnix[(double)e[0]];
+
+                        if (lostUnix.ContainsKey((double)e[0]))
+                        {
+                            lostValue = lostUnix[(double)e[0]];
+                        }
+                        i.data.Add(new List<object>() { e[0], (int)e[1] - recValue - lostValue });
                     }
                 }
             }
