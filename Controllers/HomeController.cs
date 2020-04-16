@@ -27,14 +27,18 @@ namespace covidist.com.Controllers
 
         public JsonResult getCountries()
         {
-            return new JsonResult(_logic.charts["infected"].Select(C => C.name).ToList());
+            return new JsonResult(_logic.Countries);
         }
 
         public JsonResult BarData(string filter, string sort, string dir)
         {
-            if (string.IsNullOrEmpty(dir) || (dir != "asc" && dir != "desc"))
+            if (string.IsNullOrEmpty(dir) || (dir.ToLower() != "asc" && dir.ToLower() != "desc"))
             {
-                dir = "ASC";
+                dir = "asc";
+            }
+            else
+            {
+                dir = dir.ToLower();
             }
             if (string.IsNullOrEmpty(sort) || (sort != "country" && sort != "value"))
             {
@@ -75,7 +79,9 @@ namespace covidist.com.Controllers
 
             if (field =="million")
             {
-                data2Use = new List<time_chart>() { _logic.CasesByMillion(_logic.charts["lost"]) };
+                var chartData = _logic.CasesByMillion(_logic.charts["lost"]);
+                chartData.data = chartData.data.OrderBy(C => C[0]).ToList();
+                data2Use = new List<time_chart>() { chartData };
             }
             else if(field == "active")
             {

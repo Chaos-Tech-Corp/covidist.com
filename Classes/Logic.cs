@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,56 +12,562 @@ public class Logic
 
     const double oneUnixDay = 24 * 60 * 60 * 1000;
 
-    private Dictionary<string, string> countryMappings = new Dictionary<string, string>()
+
+    public Dictionary<string, string> _codeMappings = new Dictionary<string, string>() { 
+    {"AF","Afghanistan"},
+{"AX","Åland Islands"},
+{"AL","Albania"},
+{"DZ","Algeria"},
+{"AS","American Samoa"},
+{"AD","Andorra"},
+{"AO","Angola"},
+{"AI","Anguilla"},
+{"AQ","Antarctica"},
+{"AG","Antigua and Barbuda"},
+{"AR","Argentina"},
+{"AM","Armenia"},
+{"AW","Aruba"},
+{"AU","Australia"},
+{"AT","Austria"},
+{"AZ","Azerbaijan"},
+{"BH","Bahrain"},
+{"BS","Bahamas"},
+{"BD","Bangladesh"},
+{"BB","Barbados"},
+{"BY","Belarus"},
+{"BE","Belgium"},
+{"BZ","Belize"},
+{"BJ","Benin"},
+{"BM","Bermuda"},
+{"BT","Bhutan"},
+{"BO","Bolivia, Plurinational State of"},
+{"BQ","Bonaire, Sint Eustatius and Saba"},
+{"BA","Bosnia and Herzegovina"},
+{"BW","Botswana"},
+{"BV","Bouvet Island"},
+{"BR","Brazil"},
+{"IO","British Indian Ocean Territory"},
+{"BN","Brunei Darussalam"},
+{"BG","Bulgaria"},
+{"BF","Burkina Faso"},
+{"BI","Burundi"},
+{"KH","Cambodia"},
+{"CM","Cameroon"},
+{"CA","Canada"},
+{"CV","Cape Verde"},
+{"KY","Cayman Islands"},
+{"CF","Central African Republic"},
+{"TD","Chad"},
+{"CL","Chile"},
+{"CN","China"},
+{"CX","Christmas Island"},
+{"CC","Cocos (Keeling) Islands"},
+{"CO","Colombia"},
+{"KM","Comoros"},
+{"CG","Congo"},
+{"CD","Congo, the Democratic Republic of the"},
+{"CK","Cook Islands"},
+{"CR","Costa Rica"},
+{"CI","Côte d'Ivoire"},
+{"HR","Croatia"},
+{"CU","Cuba"},
+{"CW","Curaçao"},
+{"CY","Cyprus"},
+{"CZ","Czech Republic"},
+{"DK","Denmark"},
+{"DJ","Djibouti"},
+{"DM","Dominica"},
+{"DO","Dominican Republic"},
+{"EC","Ecuador"},
+{"EG","Egypt"},
+{"SV","El Salvador"},
+{"GQ","Equatorial Guinea"},
+{"ER","Eritrea"},
+{"EE","Estonia"},
+{"ET","Ethiopia"},
+{"FK","Falkland Islands (Malvinas)"},
+{"FO","Faroe Islands"},
+{"FJ","Fiji"},
+{"FI","Finland"},
+{"FR","France"},
+{"GF","French Guiana"},
+{"PF","French Polynesia"},
+{"TF","French Southern Territories"},
+{"GA","Gabon"},
+{"GM","Gambia"},
+{"GE","Georgia"},
+{"DE","Germany"},
+{"GH","Ghana"},
+{"GI","Gibraltar"},
+{"GR","Greece"},
+{"GL","Greenland"},
+{"GD","Grenada"},
+{"GP","Guadeloupe"},
+{"GU","Guam"},
+{"GT","Guatemala"},
+{"GG","Guernsey"},
+{"GN","Guinea"},
+{"GW","Guinea-Bissau"},
+{"GY","Guyana"},
+{"HT","Haiti"},
+{"HM","Heard Island and McDonald Islands"},
+{"VA","Holy See (Vatican City State)"},
+{"HN","Honduras"},
+{"HK","Hong Kong"},
+{"HU","Hungary"},
+{"XK","Kosovo"},
+{"IS","Iceland"},
+{"IN","India"},
+{"ID","Indonesia"},
+{"IR","Iran, Islamic Republic of"},
+{"IQ","Iraq"},
+{"IE","Ireland"},
+{"IM","Isle of Man"},
+{"IL","Israel"},
+{"IT","Italy"},
+{"JM","Jamaica"},
+{"JP","Japan"},
+{"JE","Jersey"},
+{"JO","Jordan"},
+{"KZ","Kazakhstan"},
+{"KE","Kenya"},
+{"KI","Kiribati"},
+{"KP","Korea, Democratic People's Republic of"},
+{"KR","Korea, Republic of"},
+{"KW","Kuwait"},
+{"KG","Kyrgyzstan"},
+{"LA","Lao People's Democratic Republic"},
+{"LV","Latvia"},
+{"LB","Lebanon"},
+{"LS","Lesotho"},
+{"LR","Liberia"},
+{"LY","Libya"},
+{"LI","Liechtenstein"},
+{"LT","Lithuania"},
+{"LU","Luxembourg"},
+{"MO","Macao"},
+{"MK","Macedonia, the Former Yugoslav Republic of"},
+{"MG","Madagascar"},
+{"MW","Malawi"},
+{"MY","Malaysia"},
+{"MV","Maldives"},
+{"ML","Mali"},
+{"MT","Malta"},
+{"MH","Marshall Islands"},
+{"MQ","Martinique"},
+{"MR","Mauritania"},
+{"MU","Mauritius"},
+{"YT","Mayotte"},
+{"MX","Mexico"},
+{"FM","Micronesia, Federated States of"},
+{"MD","Moldova, Republic of"},
+{"MC","Monaco"},
+{"MN","Mongolia"},
+{"ME","Montenegro"},
+{"MS","Montserrat"},
+{"MA","Morocco"},
+{"MZ","Mozambique"},
+{"MM","Myanmar"},
+{"NA","Namibia"},
+{"NR","Nauru"},
+{"NP","Nepal"},
+{"NL","Netherlands"},
+{"NC","New Caledonia"},
+{"NZ","New Zealand"},
+{"NI","Nicaragua"},
+{"NE","Niger"},
+{"NG","Nigeria"},
+{"NU","Niue"},
+{"NF","Norfolk Island"},
+{"MP","Northern Mariana Islands"},
+{"NO","Norway"},
+{"OM","Oman"},
+{"PK","Pakistan"},
+{"PW","Palau"},
+{"PS","Palestine, State of"},
+{"PA","Panama"},
+{"PG","Papua New Guinea"},
+{"PY","Paraguay"},
+{"PE","Peru"},
+{"PH","Philippines"},
+{"PN","Pitcairn"},
+{"PL","Poland"},
+{"PT","Portugal"},
+{"PR","Puerto Rico"},
+{"QA","Qatar"},
+{"RE","Réunion"},
+{"RO","Romania"},
+{"RU","Russian Federation"},
+{"RW","Rwanda"},
+{"BL","Saint Barthélemy"},
+{"SH","Saint Helena, Ascension and Tristan da Cunha"},
+{"KN","Saint Kitts and Nevis"},
+{"LC","Saint Lucia"},
+{"MF","Saint Martin (French part)"},
+{"PM","Saint Pierre and Miquelon"},
+{"VC","Saint Vincent and the Grenadines"},
+{"WS","Samoa"},
+{"SM","San Marino"},
+{"ST","Sao Tome and Principe"},
+{"SA","Saudi Arabia"},
+{"SN","Senegal"},
+{"RS","Serbia"},
+{"SC","Seychelles"},
+{"SL","Sierra Leone"},
+{"SG","Singapore"},
+{"SX","Sint Maarten (Dutch part)"},
+{"SK","Slovakia"},
+{"SI","Slovenia"},
+{"SB","Solomon Islands"},
+{"SO","Somalia"},
+{"ZA","South Africa"},
+{"GS","South Georgia and the South Sandwich Islands"},
+{"SS","South Sudan"},
+{"ES","Spain"},
+{"LK","Sri Lanka"},
+{"SD","Sudan"},
+{"SR","Suriname"},
+{"SJ","Svalbard and Jan Mayen"},
+{"SZ","Swaziland"},
+{"SE","Sweden"},
+{"CH","Switzerland"},
+{"SY","Syrian Arab Republic"},
+{"TW","Taiwan, Province of China"},
+{"TJ","Tajikistan"},
+{"TZ","Tanzania, United Republic of"},
+{"TH","Thailand"},
+{"TL","Timor-Leste"},
+{"TG","Togo"},
+{"TK","Tokelau"},
+{"TO","Tonga"},
+{"TT","Trinidad and Tobago"},
+{"TN","Tunisia"},
+{"TR","Turkey"},
+{"TM","Turkmenistan"},
+{"TC","Turks and Caicos Islands"},
+{"TV","Tuvalu"},
+{"UG","Uganda"},
+{"UA","Ukraine"},
+{"AE","United Arab Emirates"},
+{"GB","United Kingdom"},
+{"US","United States"},
+{"UM","United States Minor Outlying Islands"},
+{"UY","Uruguay"},
+{"UZ","Uzbekistan"},
+{"VU","Vanuatu"},
+{"VE","Venezuela, Bolivarian Republic of"},
+{"VN","Viet Nam"},
+{"VG","Virgin Islands, British"},
+{"VI","Virgin Islands, U.S."},
+{"WF","Wallis and Futuna"},
+{"EH","Western Sahara"},
+{"YE","Yemen"},
+{"ZM","Zambia"},
+{"ZW","Zimbabwe"}
+};
+
+    private Dictionary<string, string> _countryMappings = new Dictionary<string, string>()
         {
-            {"US", "United_States_of_America"},
-            {"Antigua and Barbuda","Antigua_and_Barbuda" },
-            {"Bosnia and Herzegovina","Bosnia_and_Herzegovina" },
-            {"Brunei","Brunei_Darussalam" },
-            {"Burkina Faso","Burkina_Faso" },
-            {"Cabo Verde","Cape_Verde" },
-            {"Central African Republic","Central_African_Republic" },
-            {"Cayman Islands","Cayman_Islands" },
-            {"Costa Rica","Costa_Rica" },
-            {"Cote d'Ivoire","Cote_dIvoire" },
-            {"Czechia","Czech_Republic" },
-            {"Congo (Kinshasa)","Democratic_Republic_of_the_Congo" },
-            {"Congo (Brazzaville)","Democratic_Republic_of_the_Congo" },
-            {"Dominican Republic","Dominican_Republic" },
-            {"El Salvador","El_Salvador" },
-            {"Equatorial Guinea","Equatorial_Guinea" },
-            {"Faroe Islands","Faroe_Islands" },
-            {"French Polynesia","French_Polynesia" },
-            {"Guinea-Bissau","Guinea_Bissau" },
-            {"Holy See","Holy_See" },
-            {"Isle of Man","Isle_of_Man" },
-            {"New Zealand","New_Zealand" },
-            {"North Macedonia","North_Macedonia" },
-            {"Papua New Guinea","Papua_New_Guinea" },
-            {"Puerto Rico","Puerto_Rico" },
-            {"Saint Kitts and Nevis","Saint_Kitts_and_Nevis" },
-            {"Saint Lucia","Saint_Lucia" },
-            {"Saint Vincent and the Grenadines","Saint_Vincent_and_the_Grenadines" },
-            {"San Marino","San_Marino" },
-            {"Saudi Arabia","Saudi_Arabia" },
-            {"South Africa","South_Africa" },
-            {"South Korea","South_Korea" },
-            {"Korea, South","South_Korea" },
-            {"Sri Lanka","Sri_Lanka" },
-            {"Taiwan*","Taiwan" },
-            {"Timor-Leste","Timor_Leste" },
-            {"United Arab Emirates","United_Arab_Emirates" },
-            {"United Kingdom","United_Kingdom" },
-            {"Tanzania","United_Republic_of_Tanzania" }
-        };
-    private Dictionary<string, string> _countryCodes = new Dictionary<string, string>();
+           {"US","United_States_of_America"},
+{"United States","US"},
+{"United States of America","USA"},
+{"Antigua and Barbuda","AG"},
+{"Bosnia and Herzegovina","BA"},
+{"Brunei","BN"},
+{"Burkina Faso","BF"},
+{"Cabo Verde","CV"},
+{"Central African Republic","CF"},
+{"Cayman Islands","KY"},
+{"Costa Rica","CR"},
+{"Cote d'Ivoire","CI"},
+{"Czechia","CZ"},
+{"Czech Republic","CZ"},
+{"Czech_Republic","CZ"},
+{"Congo (Kinshasa)","CD"},
+{"Congo (Brazzaville)","CD"},
+{"Congo(Kinshasa)","CD"},
+{"Congo(Brazzaville)","CD"},
+{"Dominican Republic","DO"},
+{"Dominican_Republic","DO"},
+{"El Salvador","SV"},
+{"El_Salvador","SV"},
+{"Equatorial Guinea","GQ"},
+{"Faroe Islands","FO"},
+{"French Polynesia","PF"},
+{"Guinea-Bissau","GW"},
+{"Holy See","VA"},
+{"Isle of Man","IM"},
+{"New Zealand","NZ"},
+{"Kosovo","XK"},
+{"North Macedonia","MK"},
+{"Papua New Guinea","PG"},
+{"Puerto Rico","PR"},
+{"Saint Kitts and Nevis","KN"},
+{"Saint Lucia","LC"},
+{"Saint Vincent and the Grenadines","VC"},
+{"San Marino","SM"},
+{"Saudi Arabia","SA"},
+{"South Africa","ZA"},
+{"South Korea","KR"},
+{"Republic of Korea","KR"},
+{"Korea, South","KR"},
+{"Sri Lanka","LK"},
+{"Taiwan*","TW"},
+{"Timor-Leste","TL"},
+{"United Arab Emirates","AE"},
+{"United Kingdom","GB"},
+{"UK","GB"},
+{"Tanzania","TZ"},
+{"Afghanistan","AF"},
+{"Åland Islands","AX"},
+{"Albania","AL"},
+{"Algeria","DZ"},
+{"American Samoa","AS"},
+{"Andorra","AD"},
+{"Angola","AO"},
+{"Anguilla","AI"},
+{"Antarctica","AQ"},
+{"Argentina","AR"},
+{"Armenia","AM"},
+{"Aruba","AW"},
+{"Australia","AU"},
+{"Austria","AT"},
+{"Azerbaijan","AZ"},
+{"Bahrain","BH"},
+{"Bahamas","BS"},
+{"Bangladesh","BD"},
+{"Barbados","BB"},
+{"Belarus","BY"},
+{"Belgium","BE"},
+{"Belize","BZ"},
+{"Benin","BJ"},
+{"Bermuda","BM"},
+{"Bhutan","BT"},
+{"Bolivia, Plurinational State of","BO"},
+{"Bonaire, Sint Eustatius and Saba","BQ"},
+{"Botswana","BW"},
+{"Bouvet Island","BV"},
+{"Brazil","BR"},
+{"British Indian Ocean Territory","IO"},
+{"Brunei Darussalam","BN"},
+{"Bulgaria","BG"},
+{"Burundi","BI"},
+{"Cambodia","KH"},
+{"Cameroon","CM"},
+{"Canada","CA"},
+{"Cape Verde","CV"},
+{"Chad","TD"},
+{"Chile","CL"},
+{"China","CN"},
+{"Christmas Island","CX"},
+{"Cocos (Keeling) Islands","CC"},
+{"Colombia","CO"},
+{"Comoros","KM"},
+{"Congo","CG"},
+{"Congo, the Democratic Republic of the","CD"},
+{"Cook Islands","CK"},
+{"Côte d'Ivoire","CI"},
+{"Croatia","HR"},
+{"Cuba","CU"},
+{"Curaçao","CW"},
+{"Cyprus","CY"},
+{"Denmark","DK"},
+{"Djibouti","DJ"},
+{"Dominica","DM"},
+{"Ecuador","EC"},
+{"Egypt","EG"},
+{"Eritrea","ER"},
+{"Estonia","EE"},
+{"Ethiopia","ET"},
+{"Falkland Islands (Malvinas)","FK"},
+{"Fiji","FJ"},
+{"Finland","FI"},
+{"France","FR"},
+{"French Guiana","GF"},
+{"French Southern Territories","TF"},
+{"Gabon","GA"},
+{"Gambia","GM"},
+{"Georgia","GE"},
+{"Germany","DE"},
+{"Ghana","GH"},
+{"Gibraltar","GI"},
+{"Greece","GR"},
+{"Greenland","GL"},
+{"Grenada","GD"},
+{"Guadeloupe","GP"},
+{"Guam","GU"},
+{"Guatemala","GT"},
+{"Guernsey","GG"},
+{"Guinea","GN"},
+{"Guyana","GY"},
+{"Haiti","HT"},
+{"Heard Island and McDonald Islands","HM"},
+{"Holy See (Vatican City State)","VA"},
+{"Honduras","HN"},
+{"Hong Kong","HK"},
+{"Hungary","HU"},
+{"Iceland","IS"},
+{"India","IN"},
+{"Indonesia","ID"},
+{"Iran, Islamic Republic of","IR"},
+{"Iraq","IQ"},
+{"Ireland","IE"},
+{"Israel","IL"},
+{"Italy","IT"},
+{"Jamaica","JM"},
+{"Japan","JP"},
+{"Jersey","JE"},
+{"Jordan","JO"},
+{"Kazakhstan","KZ"},
+{"Kenya","KE"},
+{"Kiribati","KI"},
+{"Korea, Democratic People's Republic of","KP"},
+{"Korea, Republic of","KR"},
+{"Kuwait","KW"},
+{"Kyrgyzstan","KG"},
+{"Lao People's Democratic Republic","LA"},
+{"Latvia","LV"},
+{"Lebanon","LB"},
+{"Lesotho","LS"},
+{"Liberia","LR"},
+{"Libya","LY"},
+{"Liechtenstein","LI"},
+{"Lithuania","LT"},
+{"Luxembourg","LU"},
+{"Macao","MO"},
+{"Macedonia, the Former Yugoslav Republic of","MK"},
+{"Madagascar","MG"},
+{"Malawi","MW"},
+{"Malaysia","MY"},
+{"Maldives","MV"},
+{"Mali","ML"},
+{"Malta","MT"},
+{"Marshall Islands","MH"},
+{"Martinique","MQ"},
+{"Mauritania","MR"},
+{"Mauritius","MU"},
+{"Mayotte","YT"},
+{"Mexico","MX"},
+{"Micronesia, Federated States of","FM"},
+{"Moldova, Republic of","MD"},
+{"Monaco","MC"},
+{"Mongolia","MN"},
+{"Montenegro","ME"},
+{"Montserrat","MS"},
+{"Morocco","MA"},
+{"Mozambique","MZ"},
+{"Myanmar","MM"},
+{"Namibia","NA"},
+{"Nauru","NR"},
+{"Nepal","NP"},
+{"Netherlands","NL"},
+{"New Caledonia","NC"},
+{"Nicaragua","NI"},
+{"Niger","NE"},
+{"Nigeria","NG"},
+{"Niue","NU"},
+{"Norfolk Island","NF"},
+{"Northern Mariana Islands","MP"},
+{"Norway","NO"},
+{"Oman","OM"},
+{"Pakistan","PK"},
+{"Palau","PW"},
+{"Palestine, State of","PS"},
+{"Panama","PA"},
+{"Paraguay","PY"},
+{"Peru","PE"},
+{"Philippines","PH"},
+{"Pitcairn","PN"},
+{"Poland","PL"},
+{"Portugal","PT"},
+{"Qatar","QA"},
+{"Réunion","RE"},
+{"Romania","RO"},
+{"Russian Federation","RU"},
+{"Rwanda","RW"},
+{"Saint Barthélemy","BL"},
+{"Saint Helena, Ascension and Tristan da Cunha","SH"},
+{"Saint Martin (French part)","MF"},
+{"Saint Pierre and Miquelon","PM"},
+{"Samoa","WS"},
+{"Sao Tome and Principe","ST"},
+{"Senegal","SN"},
+{"Serbia","RS"},
+{"Seychelles","SC"},
+{"Sierra Leone","SL"},
+{"Singapore","SG"},
+{"Sint Maarten (Dutch part)","SX"},
+{"Slovakia","SK"},
+{"Slovenia","SI"},
+{"Solomon Islands","SB"},
+{"Somalia","SO"},
+{"South Georgia and the South Sandwich Islands","GS"},
+{"South Sudan","SS"},
+{"Spain","ES"},
+{"Sudan","SD"},
+{"Suriname","SR"},
+{"Svalbard and Jan Mayen","SJ"},
+{"Swaziland","SZ"},
+{"Sweden","SE"},
+{"Switzerland","CH"},
+{"Syrian Arab Republic","SY"},
+{"Taiwan, Province of China","TW"},
+{"Tajikistan","TJ"},
+{"Tanzania, United Republic of","TZ"},
+{"Thailand","TH"},
+{"Togo","TG"},
+{"Tokelau","TK"},
+{"Tonga","TO"},
+{"Trinidad and Tobago","TT"},
+{"Tunisia","TN"},
+{"Turkey","TR"},
+{"Turkmenistan","TM"},
+{"Turks and Caicos Islands","TC"},
+{"Tuvalu","TV"},
+{"Uganda","UG"},
+{"Ukraine","UA"},
+{"United_Kingdom","GB"},
+{"United States Minor Outlying Islands","UM"},
+{"Uruguay","UY"},
+{"Uzbekistan","UZ"},
+{"Vanuatu","VU"},
+{"Venezuela, Bolivarian Republic of","VE"},
+{"Venezuela","VE"},
+{"Viet Nam","VN"},
+{"Vietnam","VN"},
+{"Virgin Islands, British","VG"},
+{"Virgin Islands, U.S.","VI"},
+{"Wallis and Futuna","WF"},
+{"Western Sahara","EH"},
+{"Yemen","YE"},
+{"Zambia","ZM"},
+{"Zimbabwe","ZW"}
+    };
+    private Dictionary<string, string> _countryCodes2 = new Dictionary<string, string>();
+    private Dictionary<string, string> _countryCodes3 = new Dictionary<string, string>();
     private Dictionary<string, List<time_chart>> _charts = new Dictionary<string, List<time_chart>>();
     private Dictionary<string, List<time_chart>> _mobility = new Dictionary<string, List<time_chart>>();
+    //private Dictionary<string, Dictionary<DateTime, int>> _tests = new Dictionary<string, Dictionary<DateTime, int>>();
     private DateTime _lastCheck = DateTime.MinValue;
     private Dictionary<string, Dictionary<DateTime, int>> _recoveries;
     private List<time_event> _events;
     private List<string> _countries = new List<string>();
     private DateTime _lastUpdate;
+
+
+    public List<List<string>> Countries
+    {
+        get
+        {
+            List<List<string>> values = new List<List<string>>();
+            var tmpCountries = _charts["infected"].Select(C => C.code).ToList();
+            foreach (var c in tmpCountries)
+            {
+                values.Add(new List<string>() { c, _codeMappings[c] });
+            }
+            return values;
+        }
+    }
 
     public Dictionary<string, List<time_chart>> charts
     {
@@ -95,9 +602,14 @@ public class Logic
                 _countries = new List<string>();
                 _charts = new Dictionary<string, List<time_chart>>();
                 _charts.Add("infected", readAllData(null));
+
+                var tmpCountries = _charts["infected"].Select(C => C.name).ToList();
+                _countries = _codeMappings.Where(M => tmpCountries.Contains(M.Key)).Select(S => S.Value).ToList();
+
                 _charts.Add("lost", readAllData("lost"));
                 _recoveries = readRecoveries();
                 _events = GetEvents();
+                //_tests = readTests();
                 _mobility = readMovilityData();
                 _lastCheck = DateTime.Now;
             }
@@ -116,42 +628,10 @@ public class Logic
         url = "https://data.humdata.org/hxlproxy/data/download/time_series_covid19_recovered_global_narrow.csv?dest=data_edit&filter01=explode&explode-header-att01=date&explode-value-att01=value&filter02=rename&rename-oldtag02=%23affected%2Bdate&rename-newtag02=%23date&rename-header02=Date&filter03=rename&rename-oldtag03=%23affected%2Bvalue&rename-newtag03=%23affected%2Binfected%2Bvalue%2Bnum&rename-header03=Value&filter04=clean&clean-date-tags04=%23date&filter05=sort&sort-tags05=%23date&sort-reverse05=on&filter06=sort&sort-tags06=%23country%2Bname%2C%23adm1%2Bname&tagger-match-all=on&tagger-default-tag=%23affected%2Blabel&tagger-01-header=province%2Fstate&tagger-01-tag=%23adm1%2Bname&tagger-02-header=country%2Fregion&tagger-02-tag=%23country%2Bname&tagger-03-header=lat&tagger-03-tag=%23geo%2Blat&tagger-04-header=long&tagger-04-tag=%23geo%2Blon&header-row=1&url=https%3A%2F%2Fraw.githubusercontent.com%2FCSSEGISandData%2FCOVID-19%2Fmaster%2Fcsse_covid_19_data%2Fcsse_covid_19_time_series%2Ftime_series_covid19_recovered_global.csv";
         data = net.DownloadData(url);
         System.IO.File.WriteAllBytes("c:\\temp\\recover-" + DateTime.Today.ToString("yyyy-MM-dd") + ".csv", data);
-        //mobility report
-        //https://pastelsky.github.io/covid-19-mobility-tracker/output/<ISO-COUNTRY-CODE>/mobility-<social-place>.csv
-        //do it only once a day
-        if (!System.IO.File.Exists("c:\\temp\\mobility-" + DateTime.Today.ToString("yyyy-MM-dd") + ".csv"))
-        {
-            Dictionary<string, string> countries = new Dictionary<string, string>();
-            List<string> places = new List<string>() { "residential", "parks", "retail-and-recreation", "transit-stations", "workplaces", "grocery-and-pharmacy" };
-            StringBuilder fileContent = new StringBuilder();
-            foreach (var line in GetFile().Skip(1))
-            {
-                if (!countries.ContainsKey(line[7]))
-                {
-                    countries.Add(line[7], line[7]);
-                    try
-                    {
-                        foreach (var place in places)
-                        {
-                            //download the country data
-                            url = "https://pastelsky.github.io/covid-19-mobility-tracker/output/" + line[7] + "/mobility-" + place + ".csv";
-
-                            data = net.DownloadData(url);
-                            var texto = Encoding.Default.GetString(data).Replace("date,value", "").Replace("\"", "").Trim().Split('\r');
-                            foreach (var l in texto)
-                            {
-                                fileContent.Append(Environment.NewLine + line[7] + "," + place + "," + l.Trim());
-                            }
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        //error downloading a country, skip it
-                    }
-                }
-            }
-            System.IO.File.AppendAllText("c:\\temp\\mobility-" + DateTime.Today.ToString("yyyy-MM-dd") + ".csv", fileContent.ToString());
-        }
+        ////test data
+        //url = "https://ourworldindata.org/01cb0ad9-af1e-41b6-bdd5-26cfe17bb142";
+        //data = net.DownloadData(url);
+        //System.IO.File.WriteAllBytes("c:\\temp\\test-" + DateTime.Today.ToString("yyyy-MM-dd") + ".csv", data);
         _lastUpdate = GetLastUpdate();
     }
 
@@ -167,14 +647,26 @@ public class Logic
         return Extensions.SplitCSV(fileName);
     }
 
-    public List<string[]> GetMobilityFile()
+    public List<string[]> GetGoogleMobilityFile()
     {
         DateTime when = DateTime.Today;
-        string fileName = "c:\\temp\\mobility-" + when.ToString("yyyy-MM-dd") + ".csv";
+        string fileName = "c:\\temp\\mobility-google-" + when.ToString("yyyy-MM-dd") + ".csv";
         while (!System.IO.File.Exists(fileName))
         {
             when = when.AddDays(-1);
-            fileName = "c:\\temp\\mobility-" + when.ToString("yyyy-MM-dd") + ".csv";
+            fileName = "c:\\temp\\mobility-google-" + when.ToString("yyyy-MM-dd") + ".csv";
+        }
+        return Extensions.SplitCSV(fileName);
+    }
+
+    public List<string[]> GetAppleMobilityFile()
+    {
+        DateTime when = DateTime.Today;
+        string fileName = "c:\\temp\\mobility-apple-" + when.ToString("yyyy-MM-dd") + ".csv";
+        while (!System.IO.File.Exists(fileName))
+        {
+            when = when.AddDays(-1);
+            fileName = "c:\\temp\\mobility-apple-" + when.ToString("yyyy-MM-dd") + ".csv";
         }
         return Extensions.SplitCSV(fileName);
     }
@@ -188,6 +680,19 @@ public class Logic
             when = when.AddDays(-1);
             fileName = "c:\\temp\\recover-" + when.ToString("yyyy-MM-dd") + ".csv";
         }
+        return Extensions.SplitCSV(fileName);
+    }
+
+    public List<string[]> GetTests()
+    {
+        var when = DateTime.Today;
+        string fileName = "c:\\temp\\test-" + when.ToString("yyyy-MM-dd") + ".csv";
+        while (!System.IO.File.Exists(fileName))
+        {
+            when = when.AddDays(-1);
+            fileName = "c:\\temp\\test-" + when.ToString("yyyy-MM-dd") + ".csv";
+        }
+
         return Extensions.SplitCSV(fileName);
     }
 
@@ -227,7 +732,8 @@ public class Logic
     {
         int lineIx = 0;
         var charts = new List<time_chart>();
-        _countryCodes = new Dictionary<string, string>();
+        _countryCodes2 = new Dictionary<string, string>();
+        _countryCodes3 = new Dictionary<string, string>();
         var fileLines = GetFile();
         foreach (string[] values in fileLines)
         {
@@ -237,14 +743,35 @@ public class Logic
             {
                 continue;
             }
-            if (!_countryCodes.ContainsKey(values[7]))
+            //code2
+            if (!_codeMappings.ContainsKey(values[7]))
             {
-                _countryCodes.Add(values[7],values[6]);
-                charts.Add(new time_chart() { name = values[6], population = double.Parse("0" + values[9]), yAxis = 0, type = "spline", data = new List<List<object>>() });
+                if (_countryMappings.ContainsKey(values[6]))
+                {
+                    values[7] = _countryMappings[values[6]];
+                }
             }
+
+            //add values not mapped from the list
+            if (!_countryMappings.ContainsKey(values[6]))
+            {
+                _countryMappings.Add(values[6], values[7]);
+            }
+            if (_codeMappings.ContainsKey(values[7]))
+            {
+                if (!charts.Any(A => A.code == values[7]))
+                {
+                    charts.Add(new time_chart() { name = _codeMappings[values[7]], code = values[7], population = double.Parse("0" + values[9]), yAxis = 0, type = "spline", data = new List<List<object>>() });
+                }
+            } 
+            else
+            {
+                continue;
+            } 
+
         }
 
-        DateTime triggerDate = new DateTime(2020, 1, 20);
+        DateTime triggerDate = new DateTime(2020, 1, 13);
         int fieldIndex = 4;
         if (field == "lost")
         {
@@ -260,7 +787,7 @@ public class Logic
             DateTime when = DateTime.ParseExact(values[0], new string[] { "dd/MM/yyyy", "dd-MM-yyyy" }, CultureInfo.InvariantCulture);
             int infected = int.Parse(values[fieldIndex]);
             //int lost = int.Parse(values[5]);
-            string country = values[6];
+            string country = values[7];
 
             if (string.IsNullOrEmpty(values[8]) || values[8] == "N/A")
             {
@@ -272,7 +799,7 @@ public class Logic
             double unixTimestamp = (when.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
             unixTimestamp = unixTimestamp * 1000;
 
-            var who = charts.First(F => F.name == country);
+            var who = charts.First(F => F.code == country);
             who.data.Add(new List<object>() { unixTimestamp, infected });
 
 
@@ -301,73 +828,18 @@ public class Logic
         return charts;
     }
 
-    private Dictionary<string, List<time_chart>> readMovilityData()
-    {
-        var charts = new Dictionary<string, List<time_chart>>();
-        var fileLines = GetMobilityFile();
-        foreach (string[] values in fileLines)
-        {
-            if (_countryCodes.ContainsKey(values[0]))
-            {
-                var countryName = _countryCodes[values[0]];
-                if (!charts.ContainsKey(countryName))
-                {
-                    charts.Add(countryName, new List<time_chart>() { new time_chart() { name = values[1], marker = new { enabled = false } , yAxis = 0, type = "spline", data = new List<List<object>>() } });
-                }
-                else
-                {
-                    if (!charts[countryName].Any(A => A.name == values[1]))
-                    {
-                        charts[countryName].Add(new time_chart() { name = values[1], marker = new { enabled = false }, yAxis = 0, type = "spline", data = new List<List<object>>() });
-                    }
-                }
-            }
-        }
-
-        DateTime triggerDate = new DateTime(2020, 1, 20);
-        foreach (string[] values in fileLines)
-        {
-            DateTime when = DateTime.ParseExact(values[2], new string[] { "yyyy-MM-dd", "dd/MM/yyyy", "dd-MM-yyyy" }, CultureInfo.InvariantCulture);
-            int value = int.Parse(values[3]);
-            string country = values[0];
-            if (_countryCodes.ContainsKey(country))
-            {
-                country = _countryCodes[country];
-            }
-            else
-            {
-                continue;
-            }
-
-            if (when < triggerDate) continue;
-
-            double unixTimestamp = (when.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
-            unixTimestamp = unixTimestamp * 1000;
-
-            var who = charts[country].First(F => F.name == values[1]);
-            who.data.Add(new List<object>() { unixTimestamp, value });
-        }
-
-        return charts;
-    }
-
-    private Dictionary<string, Dictionary<DateTime, int>> readRecoveries()
+    private Dictionary<string, Dictionary<DateTime, int>> readTests()
     {
         var data = new Dictionary<string, Dictionary<DateTime, int>>();
-        DateTime triggerDate = new DateTime(2020, 1, 20);
-
-        if (_countries == null || _countries.Count ==0)
-        {
-            _countries = _charts["infected"].Select(S => S.name).ToList();
-        }
+        DateTime triggerDate = new DateTime(2020, 1, 13);
 
         int lineIx = 0;
-        foreach (string[] values in GetRecoveries())
+        foreach (string[] values in GetTests())
         {
             lineIx++;
             if (lineIx <= 3) continue;
 
-            
+
             DateTime when;
             string country;
             int recovered = 0;
@@ -376,19 +848,9 @@ public class Logic
             recovered = int.Parse(values[5]);
             country = values[0];
 
-            if (countryMappings.ContainsKey(country))
+            if (_countryMappings.ContainsKey(country))
             {
-                country = countryMappings[country];
-            } else if (!_countries.Contains(country.Replace(" ","_"))) {
-                country = values[1];
-            }
-            
-
-
-
-            if (countryMappings.ContainsKey(country))
-            {
-                country = countryMappings[country];
+                country = _countryMappings[country];
             }
 
             if (when < triggerDate) continue;
@@ -407,6 +869,200 @@ public class Logic
             else
             {
                 data.Add(country, new Dictionary<DateTime, int>() { { when, recovered } });
+            }
+        }
+        return data;
+    }
+
+    private Dictionary<string, List<time_chart>> readMovilityData()
+    {
+        var charts = new Dictionary<string, List<time_chart>>();
+        var fileLines = GetGoogleMobilityFile();
+        foreach (string[] values in fileLines)
+        {
+            if (_codeMappings.ContainsKey(values[0]))
+            {
+                var countryName = values[0];
+                if (!charts.ContainsKey(countryName))
+                {
+                    charts.Add(countryName, new List<time_chart>() { new time_chart() { name = values[1], marker = new { enabled = false }, yAxis = 0, type = "spline", data = new List<List<object>>() } });
+                }
+                else
+                {
+                    if (!charts[countryName].Any(A => A.name == values[1]))
+                    {
+                        charts[countryName].Add(new time_chart() { name = values[1], marker = new { enabled = false }, yAxis = 0, type = "spline", data = new List<List<object>>() });
+                    }
+                }
+            }
+        }
+
+        DateTime triggerDate = new DateTime(2020, 1, 20);
+        foreach (string[] values in fileLines)
+        {
+            DateTime when = DateTime.ParseExact(values[2], new string[] { "yyyy-MM-dd", "dd/MM/yyyy", "dd-MM-yyyy" }, CultureInfo.InvariantCulture);
+            int value = int.Parse(values[3])+100; //level with apple data
+            string country = values[0];
+            if (!_codeMappings.ContainsKey(country))
+            {
+                continue;
+            }
+
+            if (when < triggerDate) continue;
+
+            double unixTimestamp = (when.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
+            unixTimestamp = unixTimestamp * 1000;
+
+            var who = charts[country].First(F => F.name == values[1]);
+            who.data.Add(new List<object>() { unixTimestamp, value });
+        }
+
+
+        //foreach (string[] values in fileLines.Skip(1))
+        //{
+
+        //    var countryCode = values[1];
+
+        //    if (_countryMappings.ContainsKey(countryCode))
+        //    {
+        //        countryCode = _countryMappings[countryCode];
+        //    } else if (_countryMappings.ContainsKey(countryCode.Replace(" ","_")))
+        //    {
+        //        countryCode = _countryMappings[countryCode.Replace(" ", "_")];
+        //    }
+        //    else
+        //    {
+        //        continue;
+        //    }
+
+        //    if (!charts.ContainsKey(countryCode))
+        //    {
+        //        charts.Add(countryCode, new List<time_chart>() {
+        //            new time_chart() { name = "G-Retail & recreation", marker = new { enabled = false }, yAxis = 0, type = "spline", data = new List<List<object>>() },
+        //            new time_chart() { name = "G-Grocery & pharmacy" + values[1], marker = new { enabled = false }, yAxis = 0, type = "spline", data = new List<List<object>>() },
+        //            new time_chart() { name = "G-Parks", marker = new { enabled = false }, yAxis = 0, type = "spline", data = new List<List<object>>() },
+        //            new time_chart() { name = "G-Transit stations", marker = new { enabled = false }, yAxis = 0, type = "spline", data = new List<List<object>>() },
+        //            new time_chart() { name = "G-Workplaces", marker = new { enabled = false }, yAxis = 0, type = "spline", data = new List<List<object>>() },
+        //            new time_chart() { name = "G-Residential", marker = new { enabled = false }, yAxis = 0, type = "spline", data = new List<List<object>>() }
+        //        }
+        //        );
+        //    }
+
+        //    DateTime when = DateTime.ParseExact(values[0], new string[] { "yyyy-MM-dd", "dd/MM/yyyy", "dd-MM-yyyy" }, CultureInfo.InvariantCulture);
+        //    for (var i = 3; i < values.Length; i++)
+        //    {
+        //        charts[countryCode][i - 3].data.Add(new List<object>() { when.ToUnixTime(), double.Parse(string.IsNullOrEmpty(values[i]) ? "0" : values[i]) + 100 });
+        //    }
+
+
+        //}
+
+
+        fileLines = GetAppleMobilityFile();
+        //get the dates from the frist line
+        Dictionary<int, double> dateRange = new Dictionary<int, double>();
+        for (var i = 3; i < fileLines[0].Length; i++)
+        {
+            DateTime when = DateTime.ParseExact(fileLines[0][i], new string[] { "yyyy-MM-dd", "dd/MM/yyyy", "dd-MM-yyyy" }, CultureInfo.InvariantCulture);
+            dateRange.Add(i, when.ToUnixTime());
+        }
+
+        foreach (string[] values in fileLines.Skip(1))
+        {
+            var countryCode = values[1];
+            if (values[0] == "city") continue;
+            if (_countryMappings.ContainsKey(countryCode))
+            {
+                countryCode = _countryMappings[countryCode];
+            }
+            else if (_countryMappings.ContainsKey(countryCode.Replace(" ", "_")))
+            {
+                countryCode = _countryMappings[countryCode.Replace(" ", "_")];
+            }
+            else
+            {
+                continue;
+            }
+
+            if (!charts.ContainsKey(countryCode))
+            {
+                var data = new List<List<object>>();
+                for (var i = 3; i < values.Length; i++)
+                {
+                    data.Add(new List<object>() { dateRange[i], double.Parse(values[i]) });
+
+                }
+                charts.Add(countryCode, new List<time_chart>() { new time_chart() { name = "A-" + values[2], marker = new { enabled = false }, yAxis = 0, type = "spline", data = data } });
+            }
+            else
+            {
+                if (!charts[countryCode].Any(A => A.name == "A-" + values[2]))
+                {
+                    var data = new List<List<object>>();
+                    for (var i = 3; i < values.Length; i++)
+                    {
+                        data.Add(new List<object>() { dateRange[i], double.Parse(values[i]) });
+
+                    }
+                    charts[countryCode].Add(new time_chart() { name = "A-" + values[2], marker = new { enabled = false }, yAxis = 0, type = "spline", data = data });
+                }
+            }
+        }
+
+        return charts;
+    }
+
+    private Dictionary<string, Dictionary<DateTime, int>> readRecoveries()
+    {
+        var data = new Dictionary<string, Dictionary<DateTime, int>>();
+        DateTime triggerDate = new DateTime(2020, 1, 13);
+
+        int lineIx = 0;
+        foreach (string[] values in GetRecoveries())
+        {
+            lineIx++;
+            if (lineIx <= 3) continue;
+
+
+            DateTime when;
+            int recovered = 0;
+
+            when = DateTime.ParseExact(values[4], new string[] { "yyyy-MM-dd", "dd/MM/yyyy", "dd-MM-yyyy" }, CultureInfo.InvariantCulture);
+            recovered = int.Parse(values[5]);
+            //country = values[0];
+
+            var countryCode = values[1];
+
+            if (_countryMappings.ContainsKey(countryCode))
+            {
+                countryCode = _countryMappings[countryCode];
+            }
+            else if (_countryMappings.ContainsKey(countryCode.Replace(" ", "_")))
+            {
+                countryCode = _countryMappings[countryCode.Replace(" ", "_")];
+            }
+            else
+            {
+                continue;
+            }
+            //var country = _codeMappings[countryCode];
+
+            if (when < triggerDate) continue;
+
+            if (data.ContainsKey(countryCode))
+            {
+                if (data[countryCode].ContainsKey(when))
+                {
+                    data[countryCode][when] += recovered;
+                }
+                else
+                {
+                    data[countryCode].Add(when, recovered);
+                }
+            }
+            else
+            {
+                data.Add(countryCode, new Dictionary<DateTime, int>() { { when, recovered } });
             }
         }
         return data;
@@ -459,7 +1115,8 @@ public class Logic
         if (type == "c")
         {
             var me = Estimate_Value(m, 2, lengthEstimation);
-            if (me.data != null && me.data.Count > 0) {
+            if (me.data != null && me.data.Count > 0)
+            {
                 me.name = "Multiplier Estimate";
                 me.yAxis = 1;
                 me.type = "column";
@@ -470,7 +1127,7 @@ public class Logic
                 double threshold = 1.01;
                 if (t2 < t1 && t2 > threshold)
                 {
-                    
+
                     var temp = Estimate_Value(m, 2, 11);
                     if ((double)temp.data.Last()[1] <= threshold)
                     {
@@ -478,7 +1135,7 @@ public class Logic
                         {
                             if ((double)temp.data[ix][1] <= threshold)
                             {
-                                lengthEstimation = ix-1;
+                                lengthEstimation = ix - 1;
                                 me = Estimate_Value(m, 2, lengthEstimation);
                                 me.name = "Case Estimate";
                                 me.yAxis = 1;
@@ -554,7 +1211,7 @@ public class Logic
         i.type = "spline";
         i.yAxis = 0;
         i.data = new List<List<object>>();
-        foreach (var e in charts["infected"].First(I => I.name == country).data)
+        foreach (var e in charts["infected"].First(I => I.code == country).data)
         {
             //filter to start only when there are cases
             if ((int)e[1] > 0)
@@ -573,9 +1230,9 @@ public class Logic
         l.type = "spline";
         l.yAxis = 0;
         l.data = new List<List<object>>();
-        if (charts["lost"].Any(I => I.name == country))
+        if (charts["lost"].Any(I => I.code == country))
         {
-            foreach (var e in charts["lost"].First(I => I.name == country).data)
+            foreach (var e in charts["lost"].First(I => I.code == country).data)
             {
                 //filter to start only when there are cases
                 if ((int)e[1] > 0)
@@ -683,11 +1340,11 @@ public class Logic
             {
                 recUnix.Add(e.Key.ToUnixTime(), e.Value);
             }
-            foreach(var l in charts["lost"].First(I => I.name == country).data)
+            foreach (var l in charts["lost"].First(I => I.code == country).data)
             {
                 lostUnix.Add((double)l[0], (int)l[1]);
             }
-            foreach (var e in charts["infected"].First(I => I.name == country).data)
+            foreach (var e in charts["infected"].First(I => I.code == country).data)
             {
                 //filter to start only when there are cases
                 if ((int)e[1] > 0)
@@ -848,7 +1505,7 @@ public class Logic
             {
                 t1 += (double)m.data[ix][0];
                 //y1 += Math.Abs(Convert.ToDouble(m.data[ix][1]) - Convert.ToDouble(m.data[ix - 1][1]));
-                double value =Convert.ToDouble(m.data[ix][1]);
+                double value = Convert.ToDouble(m.data[ix][1]);
                 y1 += value;// > maxValue ? maxValue : value;
             }
             t1 = t1 / groupLengh;
@@ -900,19 +1557,19 @@ public class Logic
         lr.marker = new { enabled = false };
 
         //need to be done using the daily cases, not the total value
-        for(var ix = 1; ix < m.data.Count; ix++)
+        for (var ix = 1; ix < m.data.Count; ix++)
         {
             var e = m.data[ix];
             double date = Convert.ToDouble(e[0]);
-            double value = Convert.ToDouble(e[1]) - Convert.ToDouble(m.data[ix-1][1]);
+            double value = Convert.ToDouble(e[1]) - Convert.ToDouble(m.data[ix - 1][1]);
             if (value <= 0) continue;
             date = date - (oneUnixDay * period);
 
             l.data.Add(new List<object>() { date, Math.Round(value * 100 / rate) });
-            lr.data.Add(new List<object>() { date, Math.Round(value * 100 / (rate+0.5)), Math.Round(value * 100 / (rate-0.5)) });
+            lr.data.Add(new List<object>() { date, Math.Round(value * 100 / (rate + 0.5)), Math.Round(value * 100 / (rate - 0.5)) });
         }
 
-        return new List<time_chart>() {lr, l };
+        return new List<time_chart>() { lr, l };
     }
 
     /// <summary>
@@ -929,7 +1586,8 @@ public class Logic
         if (type == "series")
         {
             tmp.data.AddRange(Estimate_Series(m, 2, 4)[1].data);
-        } else
+        }
+        else
         {
             tmp.data.AddRange(Estimate_Value(m, 2, 4).data);
         }
@@ -956,10 +1614,10 @@ public class Logic
 
         //try to adjust the chart
         //when is the 30%
-        var teP = tmp.data.Where(D => Convert.ToDouble(D[1]) <= (aMax * 3 / 10) && Convert.ToDouble(D[0]) <= day1  + tMax * oneUnixDay).OrderBy(O => (double)O[0]).Last();
+        var teP = tmp.data.Where(D => Convert.ToDouble(D[1]) <= (aMax * 3 / 10) && Convert.ToDouble(D[0]) <= day1 + tMax * oneUnixDay).OrderBy(O => (double)O[0]).Last();
         var tmP = c.data.Where(D => Convert.ToDouble(D[1]) < Convert.ToDouble(teP[1]) && Convert.ToDouble(D[0]) <= day1 + tMax * oneUnixDay).OrderBy(O => (double)O[0]).Last();
         //adjust the day difference
-        if (Math.Abs((double)teP[0] - (double)tmP[0])> 0)
+        if (Math.Abs((double)teP[0] - (double)tmP[0]) > 0)
         {
             var dayDiff = ((double)teP[0] - (double)tmP[0]) / oneUnixDay;
 
@@ -993,8 +1651,8 @@ public class Logic
         var ix = 1;
         while (true)
         {
-            var value =  fValue(aMax, tMax, s, ix);
-            c.data.Add(new List<object>() { day1 + oneUnixDay * (ix - 1), Math.Round( value) });
+            var value = fValue(aMax, tMax, s, ix);
+            c.data.Add(new List<object>() { day1 + oneUnixDay * (ix - 1), Math.Round(value) });
             ix++;
             if (ix > tMax && value <= 10)
             {
@@ -1031,17 +1689,18 @@ public class Logic
         return t;
     }
 
-    public time_chart CasesByMillion(List<time_chart> m) {
+    public time_chart CasesByMillion(List<time_chart> m)
+    {
 
         var t = new time_chart();
         t.type = "bar";
         t.name = "Cases by Million";
         t.data = new List<List<object>>();
 
-        foreach(var l in m.Where(M => M.population > 0))
+        foreach (var l in m.Where(M => M.population > 0))
         {
             var finalValue = Convert.ToDouble(l.data.Last()[1]);
-            var perMillion = Math.Round( finalValue * 1000000 / l.population);
+            var perMillion = Math.Round(finalValue * 1000000 / l.population);
             if (perMillion > 0)
             {
                 t.data.Add(new List<object>() { l.name, perMillion });
@@ -1049,7 +1708,7 @@ public class Logic
         }
 
         return t;
-    
+
     }
 
     public List<time_chart> GetMobility(string country)
@@ -1061,16 +1720,6 @@ public class Logic
         else
         {
             return new List<time_chart>() { new time_chart() { name = "No data available", type = "spline", yAxis = 0 } };
-        }
-    }
-
-    public time_chart GetMobility(string country, string type)
-    {
-        if (_mobility.ContainsKey(country)) {
-            return _mobility[country].First(T => T.name == type);
-        } else
-        {
-            return new time_chart() { name = "No data available", type="spline", yAxis=0 };
         }
     }
 

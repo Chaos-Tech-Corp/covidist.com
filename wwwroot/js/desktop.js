@@ -292,8 +292,9 @@ $(function () {
 
     $.post('/getCountries', {}, function (result) {
         var s = $("#sel-countries");
+        debugger;
         for (var i = 0; i < result.length; i++) {
-            s.append('<option>' + result[i] + '</option>');
+            s.append('<option value="' + result[i][0] + '">' + result[i][1] + '</option>');
         }
         $("select").selectpicker();
 
