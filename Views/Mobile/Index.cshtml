@@ -1,14 +1,14 @@
 ﻿@{
     Layout = null;
     var countryName = ViewBag.countryName;
-    List<string> countries = ViewBag.countries;
+    List<List<string>> countries = ViewBag.countries;
 }
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>COVID-19 Distribution</title>
+    <title>COVID-19 | @countryName</title>
     <meta name="description" content="COVID-19 worldwide distrubution charts, ranges and country details." />
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.9/css/bootstrap-select.css" />
@@ -41,7 +41,7 @@
                         <optgroup label="Countries" data-max-options="2">
                             @foreach (var c in countries)
                             {
-                                <option>@c</option>
+                                <option value="@c[0]">@c[1]</option>
                             }
                         </optgroup>
                     </select>

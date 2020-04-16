@@ -21,10 +21,22 @@ namespace covidist.com.Controllers
             {
                 id = "World";
             }
-            ViewBag.countryName = id;
-            ViewBag.countries = _logic.charts["infected"].Select(C => C.name).ToList();
-            ViewBag.update = _logic.GetLastUpdate();
-            return View();
+            var countries = _logic.Countries;
+
+            if (_logic._codeMappings.ContainsKey(id) || id == "World")
+            {
+                ViewBag.countryName = id;
+                ViewBag.countries = countries;
+                ViewBag.update = _logic.GetLastUpdate();
+                return View();
+            } else
+            {
+                if (_logic._codeMappings.ContainsValue(id))
+                {
+                    return Redirect("/mobile/" + _logic._codeMappings.First(V => V.Value.ToLower() == id.ToLower()).Key);
+                }
+            }
+            return Redirect("/mobile");
         }
 
     }

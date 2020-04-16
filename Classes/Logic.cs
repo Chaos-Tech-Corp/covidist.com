@@ -885,13 +885,13 @@ public class Logic
                 var countryName = values[0];
                 if (!charts.ContainsKey(countryName))
                 {
-                    charts.Add(countryName, new List<time_chart>() { new time_chart() { name = values[1], marker = new { enabled = false }, yAxis = 0, type = "spline", data = new List<List<object>>() } });
+                    charts.Add(countryName, new List<time_chart>() { new time_chart() { name = "[G]-" + values[1], marker = new { enabled = false }, yAxis = 0, type = "spline", data = new List<List<object>>() } });
                 }
                 else
                 {
-                    if (!charts[countryName].Any(A => A.name == values[1]))
+                    if (!charts[countryName].Any(A => A.name == "[G]-" + values[1]))
                     {
-                        charts[countryName].Add(new time_chart() { name = values[1], marker = new { enabled = false }, yAxis = 0, type = "spline", data = new List<List<object>>() });
+                        charts[countryName].Add(new time_chart() { name = "[G]-" + values[1], marker = new { enabled = false }, yAxis = 0, type = "spline", data = new List<List<object>>() });
                     }
                 }
             }
@@ -913,7 +913,7 @@ public class Logic
             double unixTimestamp = (when.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
             unixTimestamp = unixTimestamp * 1000;
 
-            var who = charts[country].First(F => F.name == values[1]);
+            var who = charts[country].First(F => F.name == "[G]-" + values[1]);
             who.data.Add(new List<object>() { unixTimestamp, value });
         }
 
@@ -992,11 +992,11 @@ public class Logic
                     data.Add(new List<object>() { dateRange[i], double.Parse(values[i]) });
 
                 }
-                charts.Add(countryCode, new List<time_chart>() { new time_chart() { name = "A-" + values[2], marker = new { enabled = false }, yAxis = 0, type = "spline", data = data } });
+                charts.Add(countryCode, new List<time_chart>() { new time_chart() { name = "[A]-" + values[2], marker = new { enabled = false }, yAxis = 0, type = "spline", data = data } });
             }
             else
             {
-                if (!charts[countryCode].Any(A => A.name == "A-" + values[2]))
+                if (!charts[countryCode].Any(A => A.name == "[A]-" + values[2]))
                 {
                     var data = new List<List<object>>();
                     for (var i = 3; i < values.Length; i++)
@@ -1004,7 +1004,7 @@ public class Logic
                         data.Add(new List<object>() { dateRange[i], double.Parse(values[i]) });
 
                     }
-                    charts[countryCode].Add(new time_chart() { name = "A-" + values[2], marker = new { enabled = false }, yAxis = 0, type = "spline", data = data });
+                    charts[countryCode].Add(new time_chart() { name = "[A]-" + values[2], marker = new { enabled = false }, yAxis = 0, type = "spline", data = data });
                 }
             }
         }
