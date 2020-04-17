@@ -632,6 +632,10 @@ public class Logic
         //url = "https://ourworldindata.org/01cb0ad9-af1e-41b6-bdd5-26cfe17bb142";
         //data = net.DownloadData(url);
         //System.IO.File.WriteAllBytes("c:\\temp\\test-" + DateTime.Today.ToString("yyyy-MM-dd") + ".csv", data);
+        //google mobility data
+        url = "https://www.gstatic.com/covid19/mobility/Global_Mobility_Report.csv";
+        data = net.DownloadData(url);
+        System.IO.File.WriteAllBytes("c:\\temp\\mobility-google-" + DateTime.Today.ToString("yyyy-MM-dd") + ".csv", data);
         _lastUpdate = GetLastUpdate();
     }
 
@@ -878,84 +882,82 @@ public class Logic
     {
         var charts = new Dictionary<string, List<time_chart>>();
         var fileLines = GetGoogleMobilityFile();
-        foreach (string[] values in fileLines)
-        {
-            if (_codeMappings.ContainsKey(values[0]))
-            {
-                var countryName = values[0];
-                if (!charts.ContainsKey(countryName))
-                {
-                    charts.Add(countryName, new List<time_chart>() { new time_chart() { name = "[G]-" + values[1], marker = new { enabled = false }, yAxis = 0, type = "spline", data = new List<List<object>>() } });
-                }
-                else
-                {
-                    if (!charts[countryName].Any(A => A.name == "[G]-" + values[1]))
-                    {
-                        charts[countryName].Add(new time_chart() { name = "[G]-" + values[1], marker = new { enabled = false }, yAxis = 0, type = "spline", data = new List<List<object>>() });
-                    }
-                }
-            }
-        }
-
-        DateTime triggerDate = new DateTime(2020, 1, 20);
-        foreach (string[] values in fileLines)
-        {
-            DateTime when = DateTime.ParseExact(values[2], new string[] { "yyyy-MM-dd", "dd/MM/yyyy", "dd-MM-yyyy" }, CultureInfo.InvariantCulture);
-            int value = int.Parse(values[3])+100; //level with apple data
-            string country = values[0];
-            if (!_codeMappings.ContainsKey(country))
-            {
-                continue;
-            }
-
-            if (when < triggerDate) continue;
-
-            double unixTimestamp = (when.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
-            unixTimestamp = unixTimestamp * 1000;
-
-            var who = charts[country].First(F => F.name == "[G]-" + values[1]);
-            who.data.Add(new List<object>() { unixTimestamp, value });
-        }
-
-
-        //foreach (string[] values in fileLines.Skip(1))
+        //foreach (string[] values in fileLines)
         //{
-
-        //    var countryCode = values[1];
-
-        //    if (_countryMappings.ContainsKey(countryCode))
+        //    if (_codeMappings.ContainsKey(values[0]))
         //    {
-        //        countryCode = _countryMappings[countryCode];
-        //    } else if (_countryMappings.ContainsKey(countryCode.Replace(" ","_")))
-        //    {
-        //        countryCode = _countryMappings[countryCode.Replace(" ", "_")];
+        //        var countryName = values[0];
+        //        if (!charts.ContainsKey(countryName))
+        //        {
+        //            charts.Add(countryName, new List<time_chart>() { new time_chart() { name = "[G]-" + values[1], marker = new { enabled = false }, yAxis = 0, type = "spline", data = new List<List<object>>() } });
+        //        }
+        //        else
+        //        {
+        //            if (!charts[countryName].Any(A => A.name == "[G]-" + values[1]))
+        //            {
+        //                charts[countryName].Add(new time_chart() { name = "[G]-" + values[1], marker = new { enabled = false }, yAxis = 0, type = "spline", data = new List<List<object>>() });
+        //            }
+        //        }
         //    }
-        //    else
+        //}
+
+        //DateTime triggerDate = new DateTime(2020, 1, 20);
+        //foreach (string[] values in fileLines)
+        //{
+        //    DateTime when = DateTime.ParseExact(values[2], new string[] { "yyyy-MM-dd", "dd/MM/yyyy", "dd-MM-yyyy" }, CultureInfo.InvariantCulture);
+        //    int value = int.Parse(values[3])+100; //level with apple data
+        //    string country = values[0];
+        //    if (!_codeMappings.ContainsKey(country))
         //    {
         //        continue;
         //    }
 
-        //    if (!charts.ContainsKey(countryCode))
-        //    {
-        //        charts.Add(countryCode, new List<time_chart>() {
-        //            new time_chart() { name = "G-Retail & recreation", marker = new { enabled = false }, yAxis = 0, type = "spline", data = new List<List<object>>() },
-        //            new time_chart() { name = "G-Grocery & pharmacy" + values[1], marker = new { enabled = false }, yAxis = 0, type = "spline", data = new List<List<object>>() },
-        //            new time_chart() { name = "G-Parks", marker = new { enabled = false }, yAxis = 0, type = "spline", data = new List<List<object>>() },
-        //            new time_chart() { name = "G-Transit stations", marker = new { enabled = false }, yAxis = 0, type = "spline", data = new List<List<object>>() },
-        //            new time_chart() { name = "G-Workplaces", marker = new { enabled = false }, yAxis = 0, type = "spline", data = new List<List<object>>() },
-        //            new time_chart() { name = "G-Residential", marker = new { enabled = false }, yAxis = 0, type = "spline", data = new List<List<object>>() }
-        //        }
-        //        );
-        //    }
+        //    if (when < triggerDate) continue;
 
-        //    DateTime when = DateTime.ParseExact(values[0], new string[] { "yyyy-MM-dd", "dd/MM/yyyy", "dd-MM-yyyy" }, CultureInfo.InvariantCulture);
-        //    for (var i = 3; i < values.Length; i++)
-        //    {
-        //        charts[countryCode][i - 3].data.Add(new List<object>() { when.ToUnixTime(), double.Parse(string.IsNullOrEmpty(values[i]) ? "0" : values[i]) + 100 });
-        //    }
+        //    double unixTimestamp = (when.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
+        //    unixTimestamp = unixTimestamp * 1000;
 
-
+        //    var who = charts[country].First(F => F.name == "[G]-" + values[1]);
+        //    who.data.Add(new List<object>() { unixTimestamp, value });
         //}
+
+
+        foreach (string[] values in fileLines.Skip(1))
+        {
+
+            if (!string.IsNullOrEmpty(values[2].Trim()))
+            {
+                continue;
+            }
+
+            var countryCode = values[0];
+
+            if (!_codeMappings.ContainsKey(countryCode))
+            {
+                continue;
+            }
+
+            if (!charts.ContainsKey(countryCode))
+            {
+                charts.Add(countryCode, new List<time_chart>() {
+                    new time_chart() { name = "[G]-Retail & recreation", marker = new { enabled = false }, yAxis = 0, type = "spline", data = new List<List<object>>() },
+                    new time_chart() { name = "[G]-Grocery & pharmacy" + values[1], marker = new { enabled = false }, yAxis = 0, type = "spline", data = new List<List<object>>() },
+                    new time_chart() { name = "[G]-Parks", marker = new { enabled = false }, yAxis = 0, type = "spline", data = new List<List<object>>() },
+                    new time_chart() { name = "[G]-Transit stations", marker = new { enabled = false }, yAxis = 0, type = "spline", data = new List<List<object>>() },
+                    new time_chart() { name = "[G]-Workplaces", marker = new { enabled = false }, yAxis = 0, type = "spline", data = new List<List<object>>() },
+                    new time_chart() { name = "[G]-Residential", marker = new { enabled = false }, yAxis = 0, type = "spline", data = new List<List<object>>() }
+                }
+                );
+            }
+
+            DateTime when = DateTime.ParseExact(values[4], new string[] { "yyyy-MM-dd", "dd/MM/yyyy", "dd-MM-yyyy" }, CultureInfo.InvariantCulture);
+            for (var i = 5; i < 11; i++)
+            {
+                charts[countryCode][i - 5].data.Add(new List<object>() { when.ToUnixTime(), double.Parse(string.IsNullOrEmpty(values[i]) ? "0" : values[i]) + 100 });
+            }
+
+
+        }
 
 
         fileLines = GetAppleMobilityFile();

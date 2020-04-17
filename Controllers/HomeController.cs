@@ -88,7 +88,7 @@ namespace covidist.com.Controllers
                 data2Use = new List<time_chart>();
                 foreach (var item in _logic.charts["infected"])
                 {
-                    if (_logic.recoveries.ContainsKey(item.name))
+                    if (_logic.recoveries.ContainsKey(item.code))
                     {
 
                         var t = new time_chart()
@@ -98,7 +98,7 @@ namespace covidist.com.Controllers
                             yAxis = item.yAxis,
                             data = new List<List<object>>()
                         };
-                        var recoveries = _logic.recoveries[item.name];
+                        var recoveries = _logic.recoveries[item.code];
                         Dictionary<double, int> recUnix = new Dictionary<double, int>();
                         foreach (var e in recoveries)
                         {
