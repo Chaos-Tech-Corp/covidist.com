@@ -642,6 +642,18 @@ public class Logic
         }
     }
 
+    public double PandemicSeriesStart(string countryCode, int value)
+    {
+        var series = _charts["infected"].FirstOrDefault(F => F.code == countryCode);
+        foreach(var d in series.data)
+        {
+            if ((int)d[1] >= value)
+            {
+                return (double)d[0];
+            }
+        }
+        return 0;
+    }
 
     public void DownloadFile()
     {
@@ -1740,6 +1752,7 @@ public class Logic
         c.type = "spline";
         c.yAxis = 0;
         c.name = "Estimation";
+        c.code = m.code;
         c.marker = new { enabled = false };
         c.data = new List<List<object>>();
         var ix = 1;
@@ -1761,6 +1774,7 @@ public class Logic
         var t = new time_chart();
         t.marker = m.marker;
         t.data = new List<List<object>>();
+        t.code = m.code;
         t.color = m.color;
         t.name = m.name;
         t.population = m.population;

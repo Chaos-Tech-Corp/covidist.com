@@ -149,18 +149,26 @@ namespace covidist.com.Controllers
                     {
                         name = item.name,
                         type = item.type,
+                        code = item.code,
                         yAxis = item.yAxis,
                         data = new List<List<object>>()
                     };
                     int index = 0;
-                    for(var i = 0; i < item.data.Count; i++) { 
-                        if ((int)item.data[i][1] >= caseTrigger)
+
+                    //find the first day to use for the series, when there is X infected cases
+                    var initPoint = _logic.PandemicSeriesStart(item.code, caseTrigger);
+                    if (initPoint > 0)
+                    {
+                        for (var i = 0; i < item.data.Count; i++)
                         {
-                            t.data.Add(new List<object>() { index, item.data[i][1] });
-                            index++;
+                            if (Convert.ToDouble(item.data[i][0]) >= initPoint)
+                            {
+                                t.data.Add(new List<object>() { index, item.data[i][1] });
+                                index++;
+                            }
                         }
+                        adjusted.Add(t);
                     }
-                    adjusted.Add(t);
                 }
 
                 return new JsonResult(adjusted);
@@ -258,18 +266,23 @@ namespace covidist.com.Controllers
                         name = item.name,
                         type = item.type,
                         yAxis = item.yAxis,
+                        code = item.code,
                         data = new List<List<object>>()
                     };
                     int index = 0;
-                    for (var i = 0; i < item.data.Count; i++)
+                    var initPoint = _logic.PandemicSeriesStart(item.code, caseTrigger);
+                    if (initPoint > 0)
                     {
-                        if ((int)item.data[i][1] >= caseTrigger)
+                        for (var i = 0; i < item.data.Count; i++)
                         {
-                            t.data.Add(new List<object>() { index, item.data[i][1] });
-                            index++;
+                            if (Convert.ToDouble(item.data[i][1]) >= initPoint)
+                            {
+                                t.data.Add(new List<object>() { index, item.data[i][1] });
+                                index++;
+                            }
                         }
+                        adjusted.Add(t);
                     }
-                    adjusted.Add(t);
                 }
 
                 return new JsonResult(adjusted);

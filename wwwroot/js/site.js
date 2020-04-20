@@ -4,7 +4,7 @@ function loadData(filter, range, adjust) {
     var continent = $("#bnFilterCountry").val();
     $("#lyr-loading").show();
 //    $.post('/AllData', { field: filter, range: range, adjust: adjust }, function (result) {
-    $.post(continent == 'World' ? '/AllData' : '/ContinentData', { continent: continent.substring(2), filter, range: range, adjust: adjust }, function (result) {
+    $.post(continent == 'World' ? '/AllData' : '/ContinentData', { continent: continent.substring(2), field: filter, range: range, adjust: adjust }, function (result) {
         _charts['lyrWorld'] = Highcharts.chart('lyrWorld', {
             chart: {
                 type: 'spline'

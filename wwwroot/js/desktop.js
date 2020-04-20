@@ -18,7 +18,7 @@ function loadData(filter, range, adjust) {
     var continent = $("#bnFilterCountry").val();
 
 
-    $.post(continent == 'World' ? '/AllData' : '/ContinentData', { continent: continent.substring(2), filter, range: range, adjust: adjust }, function (result) {
+    $.post(continent == 'World' ? '/AllData' : '/ContinentData', { continent: continent.substring(2), field: filter, range: range, adjust: adjust }, function (result) {
         if (chart != null) {
             for (var i = 0; i < result.length; i++) {
                 var vValue = vSeries[result[i].name];
