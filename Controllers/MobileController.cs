@@ -21,12 +21,12 @@ namespace covidist.com.Controllers
             {
                 id = "World";
             }
-            var countries = _logic.Countries;
-
-            if (_logic._codeMappings.ContainsKey(id) || id == "World")
+            
+            if (_logic._codeMappings.ContainsKey(id) || id == "World" || _logic.Continents.Contains(id))
             {
-                ViewBag.countryName = id;
-                ViewBag.countries = countries;
+                ViewBag.countryName = _logic.Continents.Contains(id) ? "c-" + id : id;
+                ViewBag.continents = _logic.Continents;
+                ViewBag.countries = _logic.Countries;
                 ViewBag.update = _logic.GetLastUpdate();
                 return View();
             } else

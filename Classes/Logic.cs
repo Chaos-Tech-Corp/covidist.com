@@ -543,6 +543,9 @@ public class Logic
 {"Zambia","ZM"},
 {"Zimbabwe","ZW"}
     };
+
+    public Dictionary<string, string> _continentMappings = new Dictionary<string, string>();
+
     private Dictionary<string, string> _countryCodes2 = new Dictionary<string, string>();
     private Dictionary<string, string> _countryCodes3 = new Dictionary<string, string>();
     private Dictionary<string, List<time_chart>> _charts = new Dictionary<string, List<time_chart>>();
@@ -571,6 +574,14 @@ public class Logic
                 values.Add(new List<string>() { c, _codeMappings[c] });
             }
             return values;
+        }
+    }
+
+    public List<string> Continents
+    {
+        get
+        {
+            return _continentMappings.Select(V => V.Value).Distinct().ToList();
         }
     }
 
@@ -812,6 +823,7 @@ public class Logic
         var charts = new List<time_chart>();
         _countryCodes2 = new Dictionary<string, string>();
         _countryCodes3 = new Dictionary<string, string>();
+        _continentMappings = new Dictionary<string, string>();
         var fileLines = GetFile();
         foreach (string[] values in fileLines)
         {
@@ -821,6 +833,7 @@ public class Logic
             {
                 continue;
             }
+
             //code2
             if (!_codeMappings.ContainsKey(values[6]))
             {
@@ -828,6 +841,11 @@ public class Logic
                 {
                     values[6] = _countryMappings[values[10]];
                 }
+            }
+
+            if (!_continentMappings.ContainsKey(values[6]))
+            {
+                _continentMappings.Add(values[6], values[7]);
             }
 
             //add values not mapped from the list

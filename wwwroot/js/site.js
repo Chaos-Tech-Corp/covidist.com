@@ -1,8 +1,10 @@
 ﻿var _charts = {}, _countryName = 'World';
 
 function loadData(filter, range, adjust) {
+    var continent = $("#bnFilterCountry").val();
     $("#lyr-loading").show();
-    $.post('/AllData', { field: filter, range: range, adjust: adjust }, function (result) {
+//    $.post('/AllData', { field: filter, range: range, adjust: adjust }, function (result) {
+    $.post(continent == 'World' ? '/AllData' : '/ContinentData', { continent: continent.substring(2), filter, range: range, adjust: adjust }, function (result) {
         _charts['lyrWorld'] = Highcharts.chart('lyrWorld', {
             chart: {
                 type: 'spline'
@@ -233,10 +235,18 @@ $(function () {
     _countryName = $("#bnFilterCountry").val();
 
     $("#bnFilterCountry").on("change", function () {
-        document.location = '/mobile/' + $(this).val();
+        _countryName = $(this).val();
+        let isContinent = _countryName[0] == 'c' && _countryName[1] == '-';
+        if (isContinent) {
+            document.location = '/mobile/' + _countryName.substring(2);
+        } else {
+            document.location = '/mobile/' + _countryName;
+        }
     });
 
-    if (_countryName == 'World') {
+    let isContinent = _countryName[0] == 'c' && _countryName[1] == '-';
+
+    if (_countryName == 'World' || isContinent) {
 
         $("#bnFilterAdjust").closest(".form_element").hide();
         

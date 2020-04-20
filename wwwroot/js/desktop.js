@@ -15,7 +15,10 @@ function loadData(filter, range, adjust) {
         return loadBar(filter);
     }
 
-    $.post('/AllData', { field: filter, range: range, adjust: adjust }, function (result) {
+    var continent = $("#bnFilterCountry").val();
+
+
+    $.post(continent == 'World' ? '/AllData' : '/ContinentData', { continent: continent.substring(2), filter, range: range, adjust: adjust }, function (result) {
         if (chart != null) {
             for (var i = 0; i < result.length; i++) {
                 var vValue = vSeries[result[i].name];
@@ -292,8 +295,12 @@ $(function () {
 
     $.post('/getCountries', {}, function (result) {
         var s = $("#sel-countries");
-        for (var i = 0; i < result.length; i++) {
-            s.append('<option value="' + result[i][0] + '">' + result[i][1] + '</option>');
+        for (var i = 0; i < result.c.length; i++) {
+            s.append('<option value="' + result.c[i][0] + '">' + result.c[i][1] + '</option>');
+        }
+        s = $("#sel-continents");
+        for (var i = 0; i < result.g.length; i++) {
+            s.append('<option value="c-' + result.g[i] + '">' + result.g[i] + '</option>');
         }
         $("select").selectpicker();
 
@@ -375,6 +382,11 @@ $(function () {
 
     $("#bnFilterCountry").on("change", function () {
         _hash = $(this).val();
+        var isContinent = false;
+        if (_hash[0] == 'c' && _hash[1] == '-') {
+            isContinent = true;
+            _hash = _hash.substring(2);
+        }
         //window.location.hash = _hash;
         if (history.pushState) {
             history.pushState(null, null, "#" + _hash);
@@ -382,7 +394,7 @@ $(function () {
         else {
             location.hash = "#" + _hash;
         }
-        if (_hash == "World") {
+        if (_hash == "World" || isContinent) {
             $("#bnFilterLine").closest(".form_element").show();
             $("#bnFilterDate").closest(".form_element").show();
             if ($("#bnFilterDate").val() == 'date') {
