@@ -547,6 +547,7 @@ public class Logic
     private Dictionary<string, string> _countryCodes3 = new Dictionary<string, string>();
     private Dictionary<string, List<time_chart>> _charts = new Dictionary<string, List<time_chart>>();
     private Dictionary<string, List<time_chart>> _mobility = new Dictionary<string, List<time_chart>>();
+    private Dictionary<string, List<time_chart>> _country = new Dictionary<string, List<time_chart>>();
     //private Dictionary<string, Dictionary<DateTime, int>> _tests = new Dictionary<string, Dictionary<DateTime, int>>();
     private DateTime _lastCheck = DateTime.MinValue;
     private Dictionary<string, Dictionary<DateTime, int>> _recoveries;
@@ -554,6 +555,10 @@ public class Logic
     private List<string> _countries = new List<string>();
     private DateTime _lastUpdate;
 
+    //private Dictionary<string, string> _countryData = new Dictionary<string, string>()
+    //{
+    //    { "ES","https://covid19.isciii.es/resources/serie_historica_acumulados.csv"}
+    //};
 
     public List<List<string>> Countries
     {
@@ -596,8 +601,12 @@ public class Logic
             //refresh every 2 hour aprox
             if (_charts.Count == 0 || _lastCheck < DateTime.Now.AddHours(-2))
             {
-#if !DEBUG
-                DownloadFile();
+                #if !DEBUG
+                try
+                {
+                    DownloadFile();
+                } catch (Exception ex) {
+                }
 #endif
                 _countries = new List<string>();
                 _charts = new Dictionary<string, List<time_chart>>();
@@ -611,6 +620,12 @@ public class Logic
                 _events = GetEvents();
                 //_tests = readTests();
                 _mobility = readMovilityData();
+                //country data
+                _country = new Dictionary<string, List<time_chart>>();
+                //foreach(var e in _countryData)
+                //{
+                //    _country.Add(e.Key, readCountryData(e.Key));
+                //}
                 _lastCheck = DateTime.Now;
             }
         }
@@ -636,6 +651,13 @@ public class Logic
         url = "https://www.gstatic.com/covid19/mobility/Global_Mobility_Report.csv";
         data = net.DownloadData(url);
         System.IO.File.WriteAllBytes("c:\\temp\\mobility-google-" + DateTime.Today.ToString("yyyy-MM-dd") + ".csv", data);
+        //data by country
+        //foreach (var e in _countryData)
+        //{
+        //    data = net.DownloadData(e.Value);
+        //    System.IO.File.WriteAllBytes("c:\\temp\\" + e.Key + "-" + DateTime.Today.ToString("yyyy-MM-dd") + ".csv", data);
+        //}
+
         _lastUpdate = GetLastUpdate();
     }
 
@@ -647,6 +669,18 @@ public class Logic
         {
             when = when.AddDays(-1);
             fileName = "c:\\temp\\" + when.ToString("yyyy-MM-dd") + ".csv";
+        }
+        return Extensions.SplitCSV(fileName);
+    }
+
+    public List<string[]> GetCountryFile(string countryCode)
+    {
+        DateTime when = DateTime.Today;
+        string fileName = "c:\\temp\\" + countryCode + "-" + when.ToString("yyyy-MM-dd") + ".csv";
+        while (!System.IO.File.Exists(fileName))
+        {
+            when = when.AddDays(-1);
+            fileName = "c:\\temp\\" + countryCode + "-" + when.ToString("yyyy-MM-dd") + ".csv";
         }
         return Extensions.SplitCSV(fileName);
     }
@@ -732,6 +766,46 @@ public class Logic
         return lines;
     }
 
+
+    private List<time_chart> readCountryData(string countryCode)
+    {
+        var charts = new List<time_chart>();
+        var fileLines = GetCountryFile(countryCode);
+        foreach (string[] values in fileLines.Skip(1))
+        {
+
+            DateTime when = DateTime.ParseExact(values[1], new string[] { "dd/MM/yyyy", "dd-MM-yyyy" }, CultureInfo.InvariantCulture);
+            int infected = int.Parse(string.IsNullOrEmpty(values[2]) ? "0" : values[2]);
+            int recovered = int.Parse(string.IsNullOrEmpty(values[2]) ? "0" : values[6]);
+            int lost = int.Parse(string.IsNullOrEmpty(values[2]) ? "0" : values[5]);
+            //int lost = int.Parse(values[5]);
+            string prov = values[0];
+            if (string.IsNullOrEmpty(prov) || prov.Length > 2)
+            {
+                continue;
+            }
+
+            double unixTimestamp = (when.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
+            unixTimestamp = unixTimestamp * 1000;
+
+            var who = charts.FirstOrDefault(C => C.code == "I-" + prov);
+            if (who == null)
+            {
+                charts.Add(new time_chart() { name = prov, code = "I-" + prov, yAxis = 0, type = "spline", data = new List<List<object>>() { new List<object>() { unixTimestamp, infected } } });
+                charts.Add(new time_chart() { name = prov, code = "D-" + prov, yAxis = 0, type = "spline", data = new List<List<object>>() { new List<object>() { unixTimestamp, lost } } });
+                charts.Add(new time_chart() { name = prov, code = "R-" + prov, yAxis = 0, type = "spline", data = new List<List<object>>() { new List<object>() { unixTimestamp, recovered } } });
+            } else
+            {
+
+            }
+
+            who.data.Add(new List<object>() { unixTimestamp, infected });
+
+
+        }
+        return charts;
+    }
+
     private List<time_chart> readAllData(string field)
     {
         int lineIx = 0;
@@ -748,24 +822,24 @@ public class Logic
                 continue;
             }
             //code2
-            if (!_codeMappings.ContainsKey(values[7]))
+            if (!_codeMappings.ContainsKey(values[6]))
             {
-                if (_countryMappings.ContainsKey(values[6]))
+                if (_countryMappings.ContainsKey(values[10]))
                 {
-                    values[7] = _countryMappings[values[6]];
+                    values[6] = _countryMappings[values[10]];
                 }
             }
 
             //add values not mapped from the list
-            if (!_countryMappings.ContainsKey(values[6]))
+            if (!_countryMappings.ContainsKey(values[10]))
             {
-                _countryMappings.Add(values[6], values[7]);
+                _countryMappings.Add(values[10], values[6]);
             }
-            if (_codeMappings.ContainsKey(values[7]))
+            if (_codeMappings.ContainsKey(values[6]))
             {
-                if (!charts.Any(A => A.code == values[7]))
+                if (!charts.Any(A => A.code == values[6]))
                 {
-                    charts.Add(new time_chart() { name = _codeMappings[values[7]], code = values[7], population = double.Parse("0" + values[9]), yAxis = 0, type = "spline", data = new List<List<object>>() });
+                    charts.Add(new time_chart() { name = _codeMappings[values[6]], code = values[6], population = double.Parse("0" + values[9]), yAxis = 0, type = "spline", data = new List<List<object>>() });
                 }
             } 
             else
@@ -791,7 +865,7 @@ public class Logic
             DateTime when = DateTime.ParseExact(values[0], new string[] { "dd/MM/yyyy", "dd-MM-yyyy" }, CultureInfo.InvariantCulture);
             int infected = int.Parse(values[fieldIndex]);
             //int lost = int.Parse(values[5]);
-            string country = values[7];
+            string country = values[6];
 
             if (string.IsNullOrEmpty(values[8]) || values[8] == "N/A")
             {
