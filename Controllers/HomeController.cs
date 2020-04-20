@@ -95,6 +95,7 @@ namespace covidist.com.Controllers
                         {
                             name = item.name,
                             type = item.type,
+                            code = item.code,
                             yAxis = item.yAxis,
                             data = new List<List<object>>()
                         };
@@ -209,6 +210,7 @@ namespace covidist.com.Controllers
                         {
                             name = item.name,
                             type = item.type,
+                            code = item.code,
                             yAxis = item.yAxis,
                             data = new List<List<object>>()
                         };
@@ -265,8 +267,8 @@ namespace covidist.com.Controllers
                     {
                         name = item.name,
                         type = item.type,
-                        yAxis = item.yAxis,
                         code = item.code,
+                        yAxis = item.yAxis,
                         data = new List<List<object>>()
                     };
                     int index = 0;
@@ -275,7 +277,7 @@ namespace covidist.com.Controllers
                     {
                         for (var i = 0; i < item.data.Count; i++)
                         {
-                            if (Convert.ToDouble(item.data[i][1]) >= initPoint)
+                            if (Convert.ToDouble(item.data[i][0]) >= initPoint)
                             {
                                 t.data.Add(new List<object>() { index, item.data[i][1] });
                                 index++;
