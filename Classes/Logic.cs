@@ -1067,7 +1067,7 @@ public class Logic
         fileLines = GetAppleMobilityFile();
         //get the dates from the frist line
         Dictionary<int, double> dateRange = new Dictionary<int, double>();
-        for (var i = 3; i < fileLines[0].Length; i++)
+        for (var i = 4; i < fileLines[0].Length; i++)
         {
             DateTime when = DateTime.ParseExact(fileLines[0][i], new string[] { "yyyy-MM-dd", "dd/MM/yyyy", "dd-MM-yyyy" }, CultureInfo.InvariantCulture);
             dateRange.Add(i, when.ToUnixTime());
@@ -1093,9 +1093,9 @@ public class Logic
             if (!charts.ContainsKey(countryCode))
             {
                 var data = new List<List<object>>();
-                for (var i = 3; i < values.Length; i++)
+                for (var i = 4; i < values.Length; i++)
                 {
-                    data.Add(new List<object>() { dateRange[i], double.Parse(values[i]) });
+                    data.Add(new List<object>() { dateRange[i], double.Parse( string.IsNullOrEmpty(values[i]) ? "0" : values[i]) });
 
                 }
                 charts.Add(countryCode, new List<time_chart>() { new time_chart() { name = "[A]-" + values[2], marker = new { enabled = false }, yAxis = 0, type = "spline", data = data } });
@@ -1105,7 +1105,7 @@ public class Logic
                 if (!charts[countryCode].Any(A => A.name == "[A]-" + values[2]))
                 {
                     var data = new List<List<object>>();
-                    for (var i = 3; i < values.Length; i++)
+                    for (var i = 4; i < values.Length; i++)
                     {
                         data.Add(new List<object>() { dateRange[i], double.Parse(values[i]) });
 
@@ -1759,6 +1759,9 @@ public class Logic
         while (true)
         {
             var value = fValue(aMax, tMax, s, ix);
+            value += fValue(aMax * 1/3, tMax + 60, s+3, ix);
+
+            value = Math.Round(value);
             c.data.Add(new List<object>() { day1 + oneUnixDay * (ix - 1), Math.Round(value) });
             ix++;
             if (ix > tMax && value <= 10)
@@ -1834,6 +1837,11 @@ public class Logic
     double fValue(double aMax, double tMax, double s, int day)
     {
         return aMax * Math.Exp((-1 / (2 * s)) * (Math.Pow(day - tMax, 2) / day));
+        
+    }
+    double fValue2(double aMax, double tMax, double s, int day)
+    {
+        return aMax * Math.Exp(-(Math.Pow(day - tMax, 2)) / (2 * s * day));
     }
 
     public DateTime LastUpdate()
