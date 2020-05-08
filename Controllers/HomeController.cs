@@ -341,8 +341,9 @@ namespace covidist.com.Controllers
 
                 //series.Add(_logic.Estimate_Series(i, 2, 4)[1]);
                 if (i.data.Count > 0) {
-                    series.Add(_logic.Estimte_Propagation(i, double.Parse(s), "series"));
-                    series.Add(_logic.Estimte_Propagation(i, double.Parse(s), "value"));
+                    //series.AddRange(_logic.Estimte_Propagation2(i, double.Parse(s), "series"));
+                    //series.AddRange(_logic.Estimte_Propagation(i, double.Parse(s), "series"));
+                    series.AddRange(_logic.Estimte_Propagation(i, double.Parse(s), "value"));
                 }
                 return new JsonResult(new { series = series, lines = _logic.GetEventLines(country) });
             }
@@ -442,8 +443,8 @@ namespace covidist.com.Controllers
                 //series.Add(_logic.Estimate_Series(i, 2, 4)[1]);
                 if (i.data.Count > 0)
                 {
-                    series.Add(_logic.Estimte_Propagation(i, double.Parse(s), "series"));
-                    series.Add(_logic.Estimte_Propagation(i, double.Parse(s), "value"));
+                    //series.AddRange(_logic.Estimte_Propagation(i, double.Parse(s), "series"));
+                    series.AddRange(_logic.Estimte_Propagation(i, double.Parse(s), "value"));
                 }
                 return new JsonResult(new { series = series, lines = new List<object>() });
             }
@@ -457,7 +458,9 @@ namespace covidist.com.Controllers
         {
             var active = _logic.GetCountryDataActiveOnly(country);
             var estimate = _logic.Estimte_Propagation(active, 6.5);
-            return new JsonResult(new { series = new List<time_chart>() { active, estimate }, lines = _logic.GetEventLines(country) });
+            var series = new List<time_chart>() { active };
+            series.AddRange(estimate);
+            return new JsonResult(new { series = series, lines = _logic.GetEventLines(country) });
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
