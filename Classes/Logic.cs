@@ -1450,7 +1450,10 @@ public class Logic
             Dictionary<double, int> lostUnix = new Dictionary<double, int>();
             foreach (var e in recoveries)
             {
-                recUnix.Add(e.Key.ToUnixTime(), e.Value);
+                if (e.Value > 0)
+                {
+                    recUnix.Add(e.Key.ToUnixTime(), e.Value);
+                }
             }
             foreach (var l in charts["lost"].First(I => I.code == country).data)
             {
