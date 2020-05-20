@@ -612,7 +612,7 @@ public class Logic
         lock (_charts)
         {
             //refresh every 2 hour aprox
-            if (_charts.Count == 0 || _lastCheck < DateTime.Now.AddHours(-2))
+            if (_charts.Count == 0 || _lastCheck < DateTime.Now.AddHours(-6))
             {
 #if !DEBUG
                 try
@@ -1070,7 +1070,7 @@ public class Logic
         fileLines = GetAppleMobilityFile();
         //get the dates from the frist line
         Dictionary<int, double> dateRange = new Dictionary<int, double>();
-        for (var i = 4; i < fileLines[0].Length; i++)
+        for (var i = 6; i < fileLines[0].Length; i++)
         {
             DateTime when = DateTime.ParseExact(fileLines[0][i], new string[] { "yyyy-MM-dd", "dd/MM/yyyy", "dd-MM-yyyy" }, CultureInfo.InvariantCulture);
             dateRange.Add(i, when.ToUnixTime());
@@ -1079,7 +1079,7 @@ public class Logic
         foreach (string[] values in fileLines.Skip(1))
         {
             var countryCode = values[1];
-            if (values[0] == "city") continue;
+            if (values[0] != "country/region") continue;
             if (_countryMappings.ContainsKey(countryCode))
             {
                 countryCode = _countryMappings[countryCode];
@@ -1096,7 +1096,7 @@ public class Logic
             if (!charts.ContainsKey(countryCode))
             {
                 var data = new List<List<object>>();
-                for (var i = 4; i < values.Length; i++)
+                for (var i = 6; i < values.Length; i++)
                 {
                     data.Add(new List<object>() { dateRange[i], double.Parse(string.IsNullOrEmpty(values[i]) ? "0" : values[i]) });
 
@@ -1110,7 +1110,10 @@ public class Logic
                     var data = new List<List<object>>();
                     for (var i = 4; i < values.Length; i++)
                     {
-                        data.Add(new List<object>() { dateRange[i], double.Parse(values[i]) });
+                        if (!string.IsNullOrEmpty(values[i]))
+                        {
+                            data.Add(new List<object>() { dateRange[i], double.Parse(values[i]) });
+                        }
 
                     }
                     charts[countryCode].Add(new time_chart() { name = "[A]-" + values[2], marker = new { enabled = false }, yAxis = 0, type = "spline", data = data });
@@ -1681,144 +1684,17 @@ public class Logic
         return new List<time_chart>() { lr, l };
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="m">active cases</param>
-    /// <param name="s">transmisibilidad</param>
-    public time_chart Estimte_Propagation3(time_chart m, double s, string type = "value")
-    {
-
-        //add 2 days estimation
-        time_chart tmp = new time_chart();
-        tmp.data = m.data.ToList();
-        if (type == "series")
-        {
-            tmp.data.AddRange(Estimate_Series(m, 2, 4)[1].data);
-        }
-        else
-        {
-            tmp.data.AddRange(Estimate_Value(m, 2, 4).data);
-        }
-
-        double aMax = 0; //A(max) -- max numbers of persons infected in a day
-        double tMax = 0; //tm -- day of max numbers of persons infected
-        int ix = 1;
-        double day1 = Convert.ToDouble(tmp.data[0][0]);
-
-        foreach (var e in tmp.data.OrderBy(O => O[0]))
-        {
-            double date = Convert.ToDouble(e[0]);
-            double value = Convert.ToDouble(e[1]);
-            if (value > aMax)
-            {
-                aMax = value;
-                tMax = ix;
-            }
-            ix++;
-        }
-
-
-        Dictionary<double, double> picos = new Dictionary<double, double>();
-        double oldValue = 0;
-        Boolean isUp = true;
-        ix = 0;
-        foreach (var e in tmp.data.OrderBy(O => O[0]))
-        {
-
-            double value = Convert.ToDouble(e[1]);
-            double date = Convert.ToDouble(e[0]);
-            if (value < oldValue && isUp)
-            {
-                picos.Add(oldValue, ix);
-                isUp = false;
-            }
-            else if (value > oldValue)
-            {
-                isUp = true;
-
-            }
-            oldValue = value;
-
-
-
-            ix++;
-        }
-
-        List<time_chart> lista = new List<time_chart>();
-        foreach (var pico in picos)
-        {
-            double vValue = pico.Value;
-            if (lista.Count > 0)
-            {
-                vValue = pico.Value - Convert.ToDouble(lista.Last().data[Convert.ToInt32(pico.Key)][1]);
-            }
-            var tmpchart = PropagationFunction(tmp, pico.Key, vValue, s, day1);
-            //substract one from the other and do the same
-            lista.Add(tmpchart);
-            //tmp = substract(tmp, tmpchart);
-        }
-
-        var c = lista.First();
-        foreach (var l in lista.Skip(1))
-        {
-            c = addchart(c, l);
-        }
-
-        ////calculate the initial function
-        //time_chart c = PropagationFunction(tmp, aMax, tMax, s, day1);
-
-        ////try to adjust the chart
-        ////when is the 30%
-        //var teP = tmp.data.Where(D => Convert.ToDouble(D[1]) <= (aMax * 3 / 10) && Convert.ToDouble(D[0]) <= day1 + tMax * oneUnixDay).OrderBy(O => (double)O[0]).Last();
-        //var tmP = c.data.Where(D => Convert.ToDouble(D[1]) < Convert.ToDouble(teP[1]) && Convert.ToDouble(D[0]) <= day1 + tMax * oneUnixDay).OrderBy(O => (double)O[0]).Last();
-        ////adjust the day difference
-        //if (Math.Abs((double)teP[0] - (double)tmP[0]) > 0)
-        //{
-        //    var dayDiff = ((double)teP[0] - (double)tmP[0]) / oneUnixDay;
-
-        //    //when is the 60%
-        //    teP = tmp.data.Where(D => Convert.ToDouble(D[1]) <= (aMax * 6 / 10) && Convert.ToDouble(D[0]) <= day1 + tMax * oneUnixDay).OrderBy(O => (double)O[0]).Last();
-        //    tmP = c.data.Where(D => Convert.ToDouble(D[1]) < Convert.ToDouble(teP[1]) && Convert.ToDouble(D[0]) <= day1 + tMax * oneUnixDay).OrderBy(O => (double)O[0]).Last();
-        //    dayDiff += ((double)teP[0] - (double)tmP[0]) / oneUnixDay;
-
-        //    //when is the 90%
-        //    teP = tmp.data.Where(D => Convert.ToDouble(D[1]) <= (aMax * 9 / 10) && Convert.ToDouble(D[0]) <= day1 + tMax * oneUnixDay).OrderBy(O => (double)O[0]).Last();
-        //    tmP = c.data.Where(D => Convert.ToDouble(D[1]) < Convert.ToDouble(teP[1]) && Convert.ToDouble(D[0]) <= day1 + tMax * oneUnixDay).OrderBy(O => (double)O[0]).Last();
-        //    dayDiff += ((double)teP[0] - (double)tmP[0]) / oneUnixDay;
-
-        //    //average?
-        //    dayDiff = dayDiff / 3;
-
-        //    c = PropagationFunction(tmp, aMax, tMax + dayDiff, s, day1);
-        //}
-
-        return c;
-    }
 
     public List<time_chart> Estimte_Propagation(time_chart m, double s, string type = "value")
     {
-
-        //add 2 days estimation
-        time_chart tmp = new time_chart();
-        tmp.data = m.data.ToList();
-        if (type == "series")
-        {
-            tmp.data.AddRange(Estimate_Series(m, 2, 4)[1].data);
-        }
-        else
-        {
-            tmp.data.AddRange(Estimate_Value(m, 2, 4).data);
-        }
-
         double aMax = 0; //A(max) -- max numbers of persons infected in a day
         double tMax = 0; //tm -- day of max numbers of persons infected
         int ix = 1;
-        double day1 = Convert.ToDouble(tmp.data[0][0]);
+        double day1 = Convert.ToDouble(m.data[0][0]);
 
-        foreach (var e in tmp.data.OrderBy(O => O[0]))
+        foreach (var e in m.data.OrderBy(O => O[0]))
         {
-            double date = Convert.ToDouble(e[0]);
+            //double date = Convert.ToDouble(e[0]);
             double value = Convert.ToDouble(e[1]);
             if (value > aMax)
             {
@@ -1827,6 +1703,39 @@ public class Logic
             }
             ix++;
         }
+
+
+        //add 2 days estimation
+        time_chart tmp = new time_chart();
+        tmp.data = m.data.ToList();
+        if (tMax == m.data.Count)
+        {
+            if (type == "series")
+            {
+                tmp.data.AddRange(Estimate_Series(m, 2, 4)[1].data);
+            }
+            else
+            {
+                tmp.data.AddRange(Estimate_Value(m, 2, 4).data);
+            }
+
+
+            aMax = 0; //A(max) -- max numbers of persons infected in a day
+            tMax = 0; //tm -- day of max numbers of persons infected
+            ix = 1;
+            foreach (var e in tmp.data.OrderBy(O => O[0]))
+            {
+                //double date = Convert.ToDouble(e[0]);
+                double value = Convert.ToDouble(e[1]);
+                if (value > aMax)
+                {
+                    aMax = value;
+                    tMax = ix;
+                }
+                ix++;
+            }
+        }
+
 
 
         Dictionary<double, int> picos = new Dictionary<double, int>();
@@ -1834,47 +1743,60 @@ public class Logic
         Boolean isUp = true;
         int picoDayDiff = 12;
         ix = 0;
-        foreach (var e in tmp.data.OrderBy(O => O[0]))
+        if (tMax != tmp.data.Count)
         {
-
-            double value = Convert.ToDouble(e[1]);
-            double date = Convert.ToDouble(e[0]);
-            if (value < oldValue && isUp)
+            foreach (var e in tmp.data.OrderBy(O => O[0]))
             {
-                if (picos.Count == 0)
+
+                double value = Convert.ToDouble(e[1]);
+                double date = Convert.ToDouble(e[0]);
+                if (value < oldValue && isUp)
                 {
-                    picos.Add(oldValue, ix);
-                } else
-                {
-                    if (picos.Last().Value + picoDayDiff <= ix)
+                    if (picos.Count == 0)
                     {
                         picos.Add(oldValue, ix);
-                    } else
+                    }
+                    else
                     {
-                        if (oldValue > picos.Last().Key)
+                        if (picos.Last().Value + picoDayDiff <= ix)
                         {
-                            picos.Remove(picos.Last().Key);
                             picos.Add(oldValue, ix);
                         }
-                        
+                        else
+                        {
+                            if (oldValue > picos.Last().Key)
+                            {
+                                picos.Remove(picos.Last().Key);
+                                picos.Add(oldValue, ix);
+                            }
+
+                        }
                     }
+                    isUp = false;
                 }
-                isUp = false;
+                else if (value > oldValue)
+                {
+                    isUp = true;
+
+                }
+                oldValue = value;
+
+
+
+                ix++;
             }
-            else if (value > oldValue)
+            if (oldValue == aMax && tMax <= tmp.data.Count)
             {
-                isUp = true;
-
+                picos.Add(oldValue, tmp.data.Count - 1);
             }
-            oldValue = value;
-
-
-
-            ix++;
+        }
+        else
+        {
+            picos.Add(aMax, Convert.ToInt32(tMax));
         }
 
         List<time_chart> lista = new List<time_chart>();
-        
+
         foreach (var pico in picos)
         {
             //double vValue = pico.Key;
@@ -1925,7 +1847,7 @@ public class Logic
         var teP = tmp.data.Where(D => Convert.ToDouble(D[1]) <= (aMax * 2 / 10) && Convert.ToDouble(D[0]) <= day1 + dayAdjustUnix).OrderBy(O => (double)O[0]).Last();
         var tmP = c.data.Where(D => Convert.ToDouble(D[1]) <= Convert.ToDouble(teP[1]) && Convert.ToDouble(D[0]) <= day1 + cDayAdjustUnix).OrderBy(O => (double)O[0]).Last();
         //adjust the day difference
-        if (Math.Abs((double)teP[0] - (double)tmP[0]) > 0)
+        //if (Math.Abs((double)teP[0] - (double)tmP[0]) > 0)
         {
             var dayDiff = ((double)teP[0] - (double)tmP[0]) / oneUnixDay;
 
@@ -1949,9 +1871,6 @@ public class Logic
 
             lista = new List<time_chart>();
 
-            var d = PropagationFunction(tmp, aMax, tMax + dayDiff, s, day1, true);
-            d.name = "Estimation (auto)";
-            c.name = "Estimation (" + s.ToString("0.0") + ")";
             //move the sesies data these days
             if (dayDiff > 0)
             {
@@ -1960,8 +1879,16 @@ public class Logic
                     c.data[i][0] = (double)c.data[i][0] + oneUnixDay * dayDiff;
                 }
             }
-            lista.Add(d);
             lista.Add(c);
+
+            if (tMax < tmp.data.Count)
+            {
+                var d = PropagationFunction(tmp, aMax, tMax + dayDiff, s, day1, true);
+                d.name = "Estimation (auto)";
+                c.name = "Estimation (" + s.ToString("0.0") + ")";
+                lista.Add(d);
+            }
+
         }
         return lista;
         //return new List<time_chart>() { c };
@@ -2050,7 +1977,8 @@ public class Logic
                         }
                         sAverage.Add(s);
                     }
-                } else
+                }
+                else
                 {
                     if (sCalculated <= 0)
                     {
@@ -2064,14 +1992,15 @@ public class Logic
                     }
                     value = fValue(aMax, tMax, sCalculated, ix);
                 }
-            } else
+            }
+            else
             {
                 value = fValue(aMax, tMax, s, ix);
             }
             value = Math.Round(value);
             c.data.Add(new List<object>() { day1 + oneUnixDay * (ix - 1), Math.Round(value) });
             ix++;
-            if (ix > tMax && value <= 10)
+            if ((ix > tMax && value <= 10) || ix > 300)
             {
                 break;
             }
@@ -2135,7 +2064,52 @@ public class Logic
     {
         if (_mobility.ContainsKey(country))
         {
-            return _mobility[country];
+            var series = _mobility[country];
+            //generate the "average" line
+            var firstTemplate = series.First(S => S.name.StartsWith("[A]"));
+            var average = new time_chart()
+            {
+                name = "[A]-average",
+                type = firstTemplate.type,
+                marker = firstTemplate.marker,
+                yAxis = firstTemplate.yAxis,
+                zIndex = firstTemplate.zIndex,
+                data = new List<List<object>>()
+            };
+            foreach (var l in series.Where(S => S.name.StartsWith("[A]")))
+            {
+                if (average.data.Count <= 0)
+                {
+                    foreach (var d in l.data)
+                    {
+                        if (d != null && d.Count == 2)
+                        {
+                            average.data.Add(new List<object>() { d[0], d[1] });
+                        }
+                    }
+                } else
+                {
+                    foreach (var d in l.data)
+                    {
+                        var point = average.data.FirstOrDefault( O => O != null && Convert.ToDouble(O[0]) == Convert.ToDouble(d[0]));
+                        if (point != null)
+                        {
+                            point[1] = Convert.ToDouble(point[1]) + Convert.ToDouble(d[1]);
+                        } else
+                        {
+                            average.data.Add(new List<object>() { d[0], d[1] });
+                        }
+                    }
+                }
+                
+            }
+            foreach (var d in average.data)
+            {
+                var point = average.data.First(O => O[0] == d[0]);
+                point[1] = Convert.ToDouble(point[1]) / 3;
+            }
+            series.Add(average);
+            return series;
         }
         else
         {

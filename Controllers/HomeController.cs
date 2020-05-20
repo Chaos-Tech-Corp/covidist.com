@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using covidist.com.Models;
 using System.Globalization;
 using Newtonsoft.Json;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
 
 namespace covidist.com.Controllers
 {
@@ -70,20 +71,38 @@ namespace covidist.com.Controllers
             {
                 field = "infected";
             }
-            if (field != "infected" && field != "lost" && field != "active" && field != "pinfected" && field != "plost" && field != "million")
+            if (field != "infected" && field != "lost" && field != "active" && field != "pinfected" && field != "plost" && field != "million" && field != "daily")
             {
                 field = "infected";
             }
 
             List<time_chart> data2Use;
 
-            if (field =="million")
+            if (field == "million")
             {
                 var chartData = _logic.CasesByMillion(_logic.charts["lost"]);
                 chartData.data = chartData.data.OrderBy(C => C[0]).ToList();
                 data2Use = new List<time_chart>() { chartData };
             }
-            else if(field == "active")
+            else if (field == "daily")
+            {
+                data2Use = new List<time_chart>();
+                foreach (var item in _logic.charts["infected"])
+                {
+
+                    var t = _logic.CasesByDay(item);
+
+                    t.name = item.name;
+                    t.type = item.type;
+                    t.code = item.code;
+                    t.yAxis = item.yAxis;
+
+
+                    data2Use.Add(t);
+
+                }
+            }
+            else if (field == "active")
             {
                 data2Use = new List<time_chart>();
                 foreach (var item in _logic.charts["infected"])
@@ -121,16 +140,18 @@ namespace covidist.com.Controllers
                     }
                 }
 
-            } else
+            }
+            else
             {
                 data2Use = new List<time_chart>();
                 if (field == "pinfected" || field == "plost")
                 {
-                    foreach(var c in _logic.charts[field.Substring(1)])
+                    foreach (var c in _logic.charts[field.Substring(1)])
                     {
                         data2Use.Add(_logic.Convert2Population(c));
                     }
-                }else
+                }
+                else
                 {
                     data2Use = _logic.charts[field];
                 }
@@ -185,7 +206,7 @@ namespace covidist.com.Controllers
             {
                 field = "infected";
             }
-            if (field != "infected" && field != "lost" && field != "active" && field != "pinfected" && field != "plost" && field != "million")
+            if (field != "infected" && field != "lost" && field != "active" && field != "pinfected" && field != "plost" && field != "million" && field != "daily")
             {
                 field = "infected";
             }
@@ -197,6 +218,24 @@ namespace covidist.com.Controllers
                 var chartData = _logic.CasesByMillion(_logic.charts["lost"].Where(C => _logic._continentMappings[C.code] == continent).ToList()); ;
                 chartData.data = chartData.data.OrderBy(C => C[0]).ToList();
                 data2Use = new List<time_chart>() { chartData };
+            }
+            else if (field == "daily")
+            {
+                data2Use = new List<time_chart>();
+                foreach (var item in _logic.charts["infected"].Where(C => _logic._continentMappings[C.code] == continent))
+                {
+
+                    var t = _logic.CasesByDay(item);
+
+                    t.name = item.name;
+                    t.type = item.type;
+                    t.code = item.code;
+                    t.yAxis = item.yAxis;
+
+
+                    data2Use.Add(t);
+
+                }
             }
             else if (field == "active")
             {
@@ -311,12 +350,16 @@ namespace covidist.com.Controllers
                 var rDay = _logic.CasesByDay(_logic.GetRecovered(country));
                 rDay.yAxis = 1;
                 var active = _logic.GetCountryDataActiveOnly(country);
-                return new JsonResult(new { series = new List<time_chart>() { 
+                return new JsonResult(new
+                {
+                    series = new List<time_chart>() {
                     iDay,
                     rDay,
                     lDay,
                     active
-                }, lines = _logic.GetEventLines(country) });
+                },
+                    lines = _logic.GetEventLines(country)
+                });
             }
             else if (type == "e")
             {
@@ -325,29 +368,30 @@ namespace covidist.com.Controllers
                     s = "3.5";
                 }
                 var series = new List<time_chart>();
-                var l = _logic.GetLost(country);
-                l.marker = new { enabled = false };
+                //var l = _logic.GetLost(country);
+                //l.marker = new { enabled = false };
                 //series.AddRange(_logic.Estimate_Infection(l, int.Parse(p), double.Parse(r)));
-                
+
                 var i = _logic.GetCountryDataActiveOnly(country); //_logic.GetInfected(country);
                 i.name = "Active Confirmed Infected";
                 i.marker = new { enabled = false };
                 series.Add(i);
 
-                l = _logic.CasesByDay(l);
-                l.yAxis = 0;
+                //l = _logic.CasesByDay(l);
+                //l.yAxis = 0;
 
-                series.Add(l);
+                //series.Add(l);
 
                 //series.Add(_logic.Estimate_Series(i, 2, 4)[1]);
-                if (i.data.Count > 0) {
+                if (i.data.Count > 0)
+                {
                     //series.AddRange(_logic.Estimte_Propagation2(i, double.Parse(s), "series"));
                     //series.AddRange(_logic.Estimte_Propagation(i, double.Parse(s), "series"));
                     series.AddRange(_logic.Estimte_Propagation(i, double.Parse(s), "value"));
                 }
                 return new JsonResult(new { series = series, lines = _logic.GetEventLines(country) });
             }
-            else if(type == "m")
+            else if (type == "m")
             {
                 return new JsonResult(new { series = _logic.GetMobility(country), lines = _logic.GetEventLines(country) });
             }
@@ -369,11 +413,12 @@ namespace covidist.com.Controllers
                 active.yAxis = 1;
                 active.marker = new { enabled = false };
                 active.name = "Daily New Infected";
-                series.Insert(0,active);
+                series.Insert(0, active);
 
                 return new JsonResult(new { series = series, lines = _logic.GetEventLines(country) });
             }
-            else {
+            else
+            {
                 return new JsonResult(new { series = _logic.GetCountryData(country, type), lines = _logic.GetEventLines(country) });
             }
         }
@@ -418,14 +463,19 @@ namespace covidist.com.Controllers
                 m.type = "column";
                 m.yAxis = 0;
                 m.name = "Multiplier by 4 days";
-                
+
 
                 List<time_chart> c = new List<time_chart>();
                 c.Add(m);
 
-                return new JsonResult(new { series = c, lines = _logic.GetEventLines(country), yLines = new List<plotLine>() {
+                return new JsonResult(new
+                {
+                    series = c,
+                    lines = _logic.GetEventLines(country),
+                    yLines = new List<plotLine>() {
                     new plotLine() { width = 1, value = 1, label = new label() { text ="No more new cases" } }
-                } });
+                }
+                });
             }
             else if (type == "e")
             {
@@ -452,7 +502,7 @@ namespace covidist.com.Controllers
             return null;
         }
 
-        
+
 
         public JsonResult CountryDataActiveOnly(string country)
         {
