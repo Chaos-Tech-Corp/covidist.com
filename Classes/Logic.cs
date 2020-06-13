@@ -1057,10 +1057,10 @@ public class Logic
                 );
             }
 
-            DateTime when = DateTime.ParseExact(values[4], new string[] { "yyyy-MM-dd", "dd/MM/yyyy", "dd-MM-yyyy" }, CultureInfo.InvariantCulture);
-            for (var i = 5; i < 11; i++)
+            DateTime when = DateTime.ParseExact(values[6], new string[] { "yyyy-MM-dd", "dd/MM/yyyy", "dd-MM-yyyy" }, CultureInfo.InvariantCulture);
+            for (var i = 7; i < 11; i++)
             {
-                charts[countryCode][i - 5].data.Add(new List<object>() { when.ToUnixTime(), double.Parse(string.IsNullOrEmpty(values[i]) ? "0" : values[i]) + 100 });
+                charts[countryCode][i - 7].data.Add(new List<object>() { when.ToUnixTime(), double.Parse(string.IsNullOrEmpty(values[i]) ? "0" : values[i]) + 100 });
             }
 
 
